@@ -829,8 +829,8 @@ q('#t3_check_next').addEventListener('click', async ()=>{
   const understand=getRadio('check_understand'); 
   const clarity=getRadio('check_clarity');
   if(understand==null||clarity==null){ alert('請完成兩題喔'); return; }
-  await logSurvey('T3_check','check_understand',understand,null);
-  await logSurvey('T3_check','check_clarity',clarity,null);
+  await logSurvey('T3','check_understand',understand,null);
+  await logSurvey('T3','check_clarity',clarity,null);
   hide('T3_check'); 
   show('T4');
 });
