@@ -299,30 +299,30 @@
     <p style="margin-top:0"><b>【高級雙人房】</b> 今日價格：<b id="price_t1">3,241</b> 元</p>
 
     <div class="question-card">
-      <div class="qline"><b>1) 你覺得這個價格：</b></div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="t1_price" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">非常便宜</span></label>
-        <label class="cell"><input type="radio" name="t1_price" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="t1_price" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t1_price" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="t1_price" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="t1_price" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t1_price" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常昂貴</span></label>
-      </div>
-    </div>
+  <div class="qline"><b>1) 你想要購買的程度：</b></div>
+  <div class="likert">
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不想</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="2"><span>2</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="3"><span>3</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="4"><span>4</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="5"><span>5</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="6"><span>6</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常想買</span></label>
+  </div>
+</div>
 
-    <div class="question-card">
-      <div class="qline"><b>2) 你現在想要購買的程度：</b></div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="t1_intent" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不想</span></label>
-        <label class="cell"><input type="radio" name="t1_intent" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="t1_intent" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t1_intent" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="t1_intent" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="t1_intent" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t1_intent" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常想買</span></label>
-      </div>
-    </div>
+<div class="question-card">
+  <div class="qline"><b>2) 假設現在就要決定，你會購買這間房間嗎？</b></div>
+  <div class="likert">
+    <label class="cell"><input type="radio" name="t1_intent_action" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">絕對不會</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="2"><span>2</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="3"><span>3</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="4"><span>4</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="5"><span>5</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="6"><span>6</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">一定會</span></label>
+  </div>
+</div>
 
     <button class="btn" id="t1_next" style="margin-top:16px">下一步 →</button>
   </div>
@@ -720,10 +720,11 @@
 
   /* ====== T1 → T2 ====== */
   q('#t1_next').addEventListener('click', async ()=>{
-    const p=getRadio('t1_price'); const i=getRadio('t1_intent');
-    if(p==null||i==null){ alert('請完成兩題喔'); return; }
-    await logSurvey('T1','t1_price_perceived',p,null);
-    await logSurvey('T1','t1_intent',i,null);
+  const desire=getRadio('t1_intent_desire'); 
+  const action=getRadio('t1_intent_action');
+  if(desire==null||action==null){ alert('請完成兩題喔'); return; }
+  await logSurvey('T1','t1_intent_desire',desire,null);
+  await logSurvey('T1','t1_intent_action',action,null);
     await logEvent('T2','price_change_exposed',{
       old_price: EXPERIMENT_CONFIG.prices.T1,
       new_price: EXPERIMENT_CONFIG.prices.T2,
