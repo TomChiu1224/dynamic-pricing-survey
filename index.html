@@ -421,6 +421,47 @@
   </div>
 </div>
 
+
+<!-- T3_check 操弄檢核 -->
+<div id="T3_check" class="card hidden">
+  <div class="step-title">確認您的理解 <span class="pill">檢核</span></div>
+  
+  <p class="muted">在進行最後決定前，我們想確認您對剛才說明的理解。</p>
+  
+  <div class="questions-section">
+    <div class="question-card">
+      <div class="qline"><b>1) 我理解平台為何調價：</b></div>
+      <div class="likert">
+        <label class="cell"><input type="radio" name="check_understand" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不理解</span></label>
+        <label class="cell"><input type="radio" name="check_understand" value="2"><span>2</span></label>
+        <label class="cell"><input type="radio" name="check_understand" value="3"><span>3</span></label>
+        <label class="cell"><input type="radio" name="check_understand" value="4"><span>4</span></label>
+        <label class="cell"><input type="radio" name="check_understand" value="5"><span>5</span></label>
+        <label class="cell"><input type="radio" name="check_understand" value="6"><span>6</span></label>
+        <label class="cell"><input type="radio" name="check_understand" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">完全理解</span></label>
+      </div>
+    </div>
+
+    <div class="question-card">
+      <div class="qline"><b>2) 我覺得這份說明清楚易懂：</b></div>
+      <div class="likert">
+        <label class="cell"><input type="radio" name="check_clarity" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不清楚</span></label>
+        <label class="cell"><input type="radio" name="check_clarity" value="2"><span>2</span></label>
+        <label class="cell"><input type="radio" name="check_clarity" value="3"><span>3</span></label>
+        <label class="cell"><input type="radio" name="check_clarity" value="4"><span>4</span></label>
+        <label class="cell"><input type="radio" name="check_clarity" value="5"><span>5</span></label>
+        <label class="cell"><input type="radio" name="check_clarity" value="6"><span>6</span></label>
+        <label class="cell"><input type="radio" name="check_clarity" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常清楚</span></label>
+      </div>
+    </div>
+
+    <button class="btn" id="t3_check_next" style="margin-top:16px">進入最後決定 →</button>
+  </div>
+</div>
+
+
+
+
 <!-- T4 -->
 <div id="T4" class="card hidden">
   <div class="step-title">T4 最終決策 <span class="pill">第四步</span></div>
@@ -764,7 +805,7 @@
     hide('T3'); 
     insertHotelInfo('hotel-info-t4');
     q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
-    show('T4');
+    show('T3_check');
   });
 
   /* ====== T4(下單 / 放棄) ====== */
@@ -781,6 +822,21 @@
       option.querySelector('input').checked = true;
     }
   });
+
+
+/* ====== T3_check (操弄檢核) → T4 ====== */
+q('#t3_check_next').addEventListener('click', async ()=>{
+  const understand=getRadio('check_understand'); 
+  const clarity=getRadio('check_clarity');
+  if(understand==null||clarity==null){ alert('請完成兩題喔'); return; }
+  await logSurvey('T3_check','check_understand',understand,null);
+  await logSurvey('T3_check','check_clarity',clarity,null);
+  hide('T3_check'); 
+  show('T4');
+});
+
+
+
 
   function sliderLabel(val){
     if(val==0) return "剩餘房數";
