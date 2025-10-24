@@ -97,9 +97,29 @@
 
 <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/>
 
+<!-- 管理員登入區 (隱藏) -->
+<div id="admin-login" class="hidden" style="position:fixed;top:10px;right:10px;z-index:1000;background:white;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15)">
+  <div style="margin-bottom:8px;font-size:13px;color:#374151;font-weight:600">🔐 管理員登入</div>
+  <input type="password" id="admin-password" placeholder="輸入管理密碼" style="padding:6px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;width:120px">
+  <button onclick="checkAdminPassword()" style="padding:6px 10px;background:#059669;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;margin-left:4px">登入</button>
+</div>
+
+<div id="status" class="muted">尚未開始</div>
+
 <!-- T0 基本資料 -->
 <div id="T0" class="card hidden">
   <div class="step-title">T0 基本資料 <span class="pill">第零步</span></div>
+  
+  <!-- 管理員專用：匯出資料按鈕 -->
+  <div id="admin-panel" class="hidden" style="background:#f0fdf4;border:2px solid #86efac;border-radius:8px;padding:16px;margin-bottom:20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <div>
+        <div style="font-weight:700;color:#059669;margin-bottom:4px">🔐 管理員模式已啟用</div>
+        <div style="font-size:13px;color:#166534">可匯出所有受測者資料（sessions, demographics, events, surveys, orders）</div>
+      </div>
+      <button class="btn" id="btn_export_admin" style="background:#059669;border-color:#059669">📥 一鍵匯出全部表格</button>
+    </div>
+  </div>
   
   <p class="muted">以下資料僅做學術研究,去識別化保存。</p>
 
@@ -111,6 +131,7 @@
         <option value="male">男性</option>
         <option value="female">女性</option>
         <option value="nonbinary">非二元性別</option>
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
 
@@ -118,29 +139,42 @@
       <div>2) 年齡區間</div>
       <select id="t0_age">
         <option value="">請選擇</option>
+        <option value="<18">18 歲以下</option>
         <option value="18-24">18—24 歲</option>
         <option value="25-34">25—34 歲</option>
         <option value="35-44">35—44 歲</option>
         <option value="45-54">45—54 歲</option>
-        <option value="55+">55 歲以上</option>
+        <option value="55-64">55—64 歲</option>
+        <option value="65+">65 歲以上</option>
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
 
     <div>
-      <div>3) 職業</div>
-      <select id="t0_job" class="w-full">
+      <div>3) 職業(台灣常見類別)</div>
+      <select id="t0_job_select" class="w-full">
         <option value="">請選擇</option>
-        <option>學生</option><option>上班族</option><option>自由業</option><option>退休</option><option>其他</option>
+        <option>學生</option><option>軍公教</option><option>教育/研究</option><option>醫療/護理</option>
+        <option>資訊科技</option><option>金融/保險</option><option>製造業/工業</option><option>營建/土木/不動產</option>
+        <option>批發零售/門市/銷售</option><option>行銷/專案/企劃</option><option>餐飲/旅宿/觀光</option>
+        <option>運輸/倉儲/物流</option><option>服務業(百貨、客服等)</option><option>文創/設計/媒體</option>
+        <option>農林漁牧</option><option>自由業/接案</option><option>家庭主婦/主夫</option><option>退休</option>
+        <option>待業/求職中</option><option value="other">其他(請填寫)</option><option value="prefer_not">不願透露</option>
       </select>
+      <div id="t0_job_other_wrap" class="hidden" style="margin-top:6px">
+        <input type="text" id="t0_job_other" class="w-full" placeholder="請輸入職業或行業">
+      </div>
     </div>
 
     <div>
-      <div>4) 年收入</div>
+      <div>4) 年收入區間</div>
       <select id="t0_income">
         <option value="">請選擇</option>
-        <option value="<50">低於 50 萬</option>
-        <option value="50-100">50—100 萬</option>
-        <option value="100+">100 萬以上</option>
+        <option value="<50萬">低於 50 萬</option>
+        <option value="50—100萬">50—100 萬</option>
+        <option value="100—200萬">100—200 萬</option>
+        <option value="200萬+">200 萬以上</option>
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
 
@@ -148,9 +182,12 @@
       <div>5) 教育程度</div>
       <select id="t0_edu">
         <option value="">請選擇</option>
-        <option value="high">高中/高職</option>
-        <option value="college">大學/大專</option>
-        <option value="grad">研究所以上</option>
+        <option value="國中以下">國中以下</option>
+        <option value="高中職">高中/高職</option>
+        <option value="大學/大專">大學/大專</option>
+        <option value="研究所">研究所</option>
+        <option value="博士">博士</option>
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
   </div>
@@ -160,52 +197,147 @@
   </div>
 </div>
 
+<!-- 飯店資訊卡片組件模板 (會在 T1-T4 重複使用) -->
+<template id="hotel-info-template">
+  <div class="hotel-info-card">
+    <!-- 圖片輪播 -->
+    <div class="carousel-container">
+      <button class="carousel-btn prev">‹</button>
+      <button class="carousel-btn next">›</button>
+      <div class="carousel-slides">
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=19jD0gcMNJutsnZ-wzM_Jt1s4D-GFhkHF&sz=w1200" alt="長榮桂冠酒店外觀"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1Rnj8oHYsDz0nZY-bSwp8-bL8WeE7NqgB&sz=w1200" alt="高級雙人房"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1vcSCGIxPwO1FujP-Y9x-ZGPbaIQooCg7&sz=w1200" alt="客房內部"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1tPhdEHQRt8Iuuki9SAI2NfPXlhIjasXh&sz=w1200" alt="豪華房型"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1tA6oq4Fp9xnS6lsKY_jvUYC0AFkzW02D&sz=w1200" alt="浴室設施"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1DHtMAGjasDx8BB40gynGm9_D3c0czju5&sz=w1200" alt="房間設備"></div>
+      </div>
+    </div>
+    
+    <!-- 縮圖導航 -->
+    <div class="thumbs-nav">
+      <div class="thumb-item active" data-index="0"><img src="https://drive.google.com/thumbnail?id=19jD0gcMNJutsnZ-wzM_Jt1s4D-GFhkHF&sz=w200" alt="外觀"></div>
+      <div class="thumb-item" data-index="1"><img src="https://drive.google.com/thumbnail?id=1Rnj8oHYsDz0nZY-bSwp8-bL8WeE7NqgB&sz=w200" alt="雙人房"></div>
+      <div class="thumb-item" data-index="2"><img src="https://drive.google.com/thumbnail?id=1vcSCGIxPwO1FujP-Y9x-ZGPbaIQooCg7&sz=w200" alt="客房"></div>
+      <div class="thumb-item" data-index="3"><img src="https://drive.google.com/thumbnail?id=1tPhdEHQRt8Iuuki9SAI2NfPXlhIjasXh&sz=w200" alt="豪華房"></div>
+      <div class="thumb-item" data-index="4"><img src="https://drive.google.com/thumbnail?id=1tA6oq4Fp9xnS6lsKY_jvUYC0AFkzW02D&sz=w200" alt="浴室"></div>
+      <div class="thumb-item" data-index="5"><img src="https://drive.google.com/thumbnail?id=1DHtMAGjasDx8BB40gynGm9_D3c0czju5&sz=w200" alt="設備"></div>
+    </div>
+    
+    <!-- 飯店詳細資訊 -->
+    <div class="hotel-details">
+      <div class="hotel-header">
+        <div>
+          <div class="hotel-title">長榮桂冠酒店 - 台中 Evergreen Laurel Hotel Taichung</div>
+          <div class="hotel-subtitle">高級雙人房 (Superior Double Bed) ｜30平方公尺/323平方英尺｜1張雙人床</div>
+        </div>
+        <div class="price-section">
+          <div class="price-label">平日(週一到週四)售價</div>
+          <div class="price-big">NT$ <span id="current-price">3,241</span></div>
+        </div>
+      </div>
+      
+      <div class="hotel-rating">
+        <span class="stars">★★★★★</span>
+        <span class="rating-text">8.9 很讚 (17,233 則評論)</span>
+      </div>
+      
+      <div class="badges">
+        <span class="badge">✓ 附早餐</span>
+        <span class="badge">✓ 2025年10月20日 星期一前可免費取消</span>
+        <span class="badge">✓ 可延至2025年10月18日 星期六扣款</span>
+        <span class="badge">✓ 停車</span>
+        <span class="badge">✓ 免費 Wi-Fi</span>
+        <span class="badge">✓ 健身中心</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="icon">📍</span>
+        <span>台灣大道二段666號, 西屯區, 台中市, 台灣, 407 - <a href="https://maps.app.goo.gl/NsShf1o18wPhJ2cu5" target="_blank" style="color:#059669;text-decoration:underline">查看地圖與周邊設施</a></span>
+      </div>
+      
+      <div class="info-row">
+        <span class="icon">🕐</span>
+        <span>入住 15:00 起 ｜ 退房 12:00 前</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="icon">🏨</span>
+        <span>客房面積：30平方公尺 ｜ 1張雙人床 ｜ 浴缸 ｜ 遮光窗簾 ｜ 免費盥洗用品 ｜ Mini Bar ｜ 吹風機 ｜ 浴缸 ｜ 浴袍</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="icon">✨</span>
+        <span><b>飯店設施：</b>免費Wi-Fi、景觀泳池、免費停車、Spa、酒吧、24小時櫃台服務、健身中心、餐廳</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="icon">🍽️</span>
+        <span><b>餐飲服務：</b>24小時送餐服務、咖啡廳、送餐服務、美髮沙龍、健身房、Spa</span>
+      </div>
+      
+      <div class="info-row">
+        <span class="icon">🛎️</span>
+        <span><b>房間設施：</b>恆溫水壺、吹風機、浴缸、專用衛浴、淋浴設備、隔音設施、室內拖鞋、遮光窗簾、盥洗用品、電視、免費有線上網、電話、衛星頻道/有線電視、冰箱、Mini Bar、免費即溶咖啡、冰箱、泳衣/泳裝設備、地毯、音響、衣櫃、熨燙設備</span>
+      </div>
+      
+      <div style="margin-top:12px;padding:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px">
+        <div style="color:#059669;font-weight:600;margin-bottom:4px">💳 全台專屬</div>
+        <div style="font-size:13px;color:#166534">• 附早餐｜免費Wi-Fi｜健身中心｜停車</div>
+      </div>
+    </div>
+  </div>
+</template>
+
 <!-- T1 -->
 <div id="T1" class="card hidden">
   <div class="step-title">T1 初見價格 <span class="pill">第一步</span></div>
   
+  <div id="hotel-info-t1"></div>
+  
   <div class="questions-section">
-    <p style="margin-top:0"><b>【高級雙人房】</b> 今日價格：<b>NT$ 3,241</b> 元</p>
+    <p style="margin-top:0"><b>【高級雙人房】</b> 今日價格：<b id="price_t1">3,241</b> 元</p>
 
     <div class="question-card">
-      <div class="qline"><b>1) 你想要購買的程度：</b></div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不想</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_desire" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常想買</span></label>
-      </div>
-    </div>
+  <div class="qline"><b>1) 你想要購買的程度：</b></div>
+  <div class="likert">
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不想</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="2"><span>2</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="3"><span>3</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="4"><span>4</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="5"><span>5</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="6"><span>6</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_desire" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常想買</span></label>
+  </div>
+</div>
 
-    <div class="question-card">
-      <div class="qline"><b>2) 假設現在就要決定，你會購買這間房間嗎？</b></div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="t1_intent_action" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">絕對不會</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_action" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_action" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_action" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_action" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_action" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t1_intent_action" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">一定會</span></label>
-      </div>
-    </div>
+<div class="question-card">
+  <div class="qline"><b>2) 假設現在就要決定，你會購買這間房間嗎？</b></div>
+  <div class="likert">
+    <label class="cell"><input type="radio" name="t1_intent_action" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">絕對不會</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="2"><span>2</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="3"><span>3</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="4"><span>4</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="5"><span>5</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="6"><span>6</span></label>
+    <label class="cell"><input type="radio" name="t1_intent_action" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">一定會</span></label>
+  </div>
+</div>
 
-    <div class="question-card" style="background:#fff9e6;border:1px solid #fcd34d">
-      <div class="qline"><b>⚠️ 注意力檢核：請選擇「3」</b></div>
-      <div class="muted" style="margin-bottom:8px">請仔細選擇正確的數字</div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="attention_check" value="1"><span>1</span></label>
-        <label class="cell"><input type="radio" name="attention_check" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="attention_check" value="3"><span>3</span><span style="font-size:11px;margin-top:2px;color:#dc2626;font-weight:600">✓</span></label>
-        <label class="cell"><input type="radio" name="attention_check" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="attention_check" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="attention_check" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="attention_check" value="7"><span>7</span></label>
-      </div>
-    </div>
+
+<div class="question-card" style="background:#fff9e6;border:1px solid #fcd34d">
+  <div class="qline"><b>⚠️ 注意力檢核：請選擇「3」</b></div>
+  <div class="muted" style="margin-bottom:8px">請仔細選擇正確的數字</div>
+  <div class="likert">
+    <label class="cell"><input type="radio" name="attention_check" value="1"><span>1</span></label>
+    <label class="cell"><input type="radio" name="attention_check" value="2"><span>2</span></label>
+    <label class="cell"><input type="radio" name="attention_check" value="3"><span>3</span><span style="font-size:11px;margin-top:2px;color:#dc2626;font-weight:600">✓</span></label>
+    <label class="cell"><input type="radio" name="attention_check" value="4"><span>4</span></label>
+    <label class="cell"><input type="radio" name="attention_check" value="5"><span>5</span></label>
+    <label class="cell"><input type="radio" name="attention_check" value="6"><span>6</span></label>
+    <label class="cell"><input type="radio" name="attention_check" value="7"><span>7</span></label>
+  </div>
+</div>
 
     <button class="btn" id="t1_next" style="margin-top:16px">下一步 →</button>
   </div>
@@ -215,9 +347,11 @@
 <div id="T2" class="card hidden">
   <div class="step-title">T2 價格變動 <span class="pill">第二步</span></div>
   
+  <div id="hotel-info-t2"></div>
+  
   <div class="questions-section">
     <div style="padding:12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;margin-bottom:16px">
-      <p style="margin:0;color:#dc2626;font-weight:600">⚠️ 價格更新：從 NT$ 3,241 → NT$ 3,727 元 (↑ 15%)</p>
+      <p style="margin:0;color:#dc2626;font-weight:600">⚠️ 過三天後您再次進入這頁面,價格更新：從 <b id="t2_old_price">3,241</b> → <b id="price_t2">3,727</b> 元 (↑ <span id="t2_pct">15</span>%)</p>
     </div>
 
     <div class="question-card">
@@ -259,7 +393,7 @@
       </div>
     </div>
 
-    <button class="btn" id="t2_next">下一步 →</button>
+    <button class="btn" id="t2_next">下一步(看說明) →</button>
   </div>
 </div>
 
@@ -267,10 +401,10 @@
 <div id="T3" class="card hidden">
   <div class="step-title">T3 價格透明說明 <span class="pill">第三步</span></div>
   
+  <div id="hotel-info-t3"></div>
+  
   <div class="questions-section">
-    <div style="padding:16px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;margin-bottom:16px;color:#1e40af">
-      <b>💡 說明：</b> 本平台採動態定價，依「剩餘房數、近期瀏覽量、同區域平均價格」即時調整。目前此時段：剩餘房數減少、瀏覽量上升。
-    </div>
+    <div id="transparency_block" style="padding:16px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;margin-bottom:16px;color:#1e40af"></div>
 
     <div class="question-card">
       <div class="qline"><b>1) 現在你覺得價格是公平的：</b></div>
@@ -339,13 +473,19 @@
   </div>
 </div>
 
+
+
+
+
 <!-- T4 -->
 <div id="T4" class="card hidden">
   <div class="step-title">T4 最終決策 <span class="pill">第四步</span></div>
   
+  <div id="hotel-info-t4"></div>
+  
   <div class="questions-section">
     <div class="question-card">
-      <div class="qline"><b>1) 整體來說，你覺得這個價格是公平的：</b></div>
+      <div class="qline"><b>1) 整體來說,你覺得這個價格是公平的：</b></div>
       <div class="likert">
         <label class="cell"><input type="radio" name="t4_fair" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">非常同意</span></label>
         <label class="cell"><input type="radio" name="t4_fair" value="2"><span>2</span></label>
@@ -370,111 +510,386 @@
       </div>
     </div>
 
-    <div class="row" style="margin-top:20px">
-      <button class="btn" id="btn_checkout">✓ 我會購買</button>
-      <button class="btn secondary" id="btn_abandon">✗ 我不買</button>
+    <div style="margin:20px 0">
+      <div style="margin-bottom:12px"><b>(可選) 哪個資訊最影響你的決定？</b></div>
+      <div style="display:flex;gap:12px;align-items:stretch;max-width:600px">
+        <label class="slider-option" data-value="0">
+          <input type="radio" name="t4_reason" value="0">
+          <div style="font-size:14px;font-weight:500">剩餘房數</div>
+        </label>
+        <label class="slider-option" data-value="50">
+          <input type="radio" name="t4_reason" value="50">
+          <div style="font-size:14px;font-weight:500">其他飯店價格</div>
+        </label>
+        <label class="slider-option" data-value="100">
+          <input type="radio" name="t4_reason" value="100">
+          <div style="font-size:14px;font-weight:500">透明說明</div>
+        </label>
+      </div>
     </div>
-    <div id="done" class="ok hidden" style="margin-top:12px;font-size:16px">✓ 已完成,感謝！</div>
+
+    <div class="row" style="margin-top:20px">
+      <button class="btn" id="btn_checkout">✓ 我會購買(模擬下單)</button>
+      <button class="btn secondary" id="btn_abandon">✗ 我不買(離開)</button>
+    </div>
+    <div id="done" class="ok hidden" style="margin-top:12px;font-size:16px">✓ 已完成,感謝！你可以關閉頁面。</div>
   </div>
 </div>
 
 <script type="module">
-  const q=(s)=>document.querySelector(s);
-  const show=(id)=>q('#'+id).classList.remove('hidden');
-  const hide=(id)=>q('#'+id).classList.add('hidden');
-  const getRadio=(name)=>{const el=document.querySelector(`input[name="${name}"]:checked`);return el?Number(el.value):null;};
+  /* ====== 實驗參數集中管理 ====== */
+  const EXPERIMENT_CONFIG = {
+    prices: {
+      T1: 3241,           // 初始價格
+      T2: 3727,           // 漲價後價格
+      T2_original: 3241   // T2顯示的原價參考
+    },
+    inventory: {
+      T1: 3,              // 初始剩餘房數
+      T2: 2               // T2剩餘房數
+    },
+    priceChange: {
+      absolute: 486,      // 絕對漲幅 (3727-3241)
+      percentage: 0.15    // 百分比 15%
+    },
+    competitor: {
+      price: 3500         // 競品價格（用於T3說明）
+    }
+  };
 
+  /* ====== Supabase 連線 ====== */
   const SUPABASE_URL = "https://hcsbwmeseeerugeotsow.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhjc2J3bWVzZWVlcnVnZW90c293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjA4MjQsImV4cCI6MjA3NTgzNjgyNH0.3CP5szKNc5wMq9L4xO70wxlyMxT3YpK_5gg7i3TAx38";
   import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
   const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  let SESSION_ID=null;
+  /* ====== DOM 小工具 ====== */
+  const q=(s)=>document.querySelector(s);
+  const qa=(s)=>document.querySelectorAll(s);
+  const show=(id)=>q('#'+id).classList.remove('hidden');
+  const hide=(id)=>q('#'+id).classList.add('hidden');
+  const getRadio=(name)=>{const el=document.querySelector(`input[name="${name}"]:checked`);return el?Number(el.value):null;};
 
-  async function startSession(){
-    const { data, error } = await supabase.from('sessions').insert([{scenario:'hotel'}]).select('session_id').single();
-    if(error){ console.log('連線失敗:'+error.message); return null; }
-    SESSION_ID=data.session_id;
-    return SESSION_ID;
+  /* ====== 圖片輪播功能 ====== */
+  let currentSlide = 0;
+  const totalSlides = 6;
+
+  function initCarousel(container) {
+    const slides = container.querySelector('.carousel-slides');
+    const prevBtn = container.querySelector('.carousel-btn.prev');
+    const nextBtn = container.querySelector('.carousel-btn.next');
+    const thumbs = container.querySelectorAll('.thumb-item');
+    
+    function goToSlide(index) {
+      currentSlide = index;
+      slides.style.transform = `translateX(-${currentSlide * 100}%)`;
+      thumbs.forEach((thumb, i) => {
+        thumb.classList.toggle('active', i === currentSlide);
+      });
+    }
+    
+    prevBtn.addEventListener('click', () => {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      goToSlide(currentSlide);
+    });
+    
+    nextBtn.addEventListener('click', () => {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      goToSlide(currentSlide);
+    });
+    
+    thumbs.forEach((thumb, index) => {
+      thumb.addEventListener('click', () => {
+        goToSlide(index);
+      });
+    });
   }
 
+  // 克隆飯店資訊模板到各階段
+  function insertHotelInfo(targetId) {
+    const template = q('#hotel-info-template');
+    const target = q('#' + targetId);
+    const clone = template.content.cloneNode(true);
+    target.appendChild(clone);
+    initCarousel(target.querySelector('.hotel-info-card'));
+  }
+
+  // T0 其他職業欄顯示
+  document.addEventListener("change",(e)=>{
+    if(e.target && e.target.id==="t0_job_select"){
+      if(e.target.value==="other") q("#t0_job_other_wrap").classList.remove("hidden");
+      else q("#t0_job_other_wrap").classList.add("hidden");
+    }
+  });
+
+  /* ====== 實驗設定 ====== */
+  const GROUPS=['A_low','B_mid','C_high'];
+  const assigned_group=GROUPS[Math.floor(Math.random()*GROUPS.length)];
+  const scenario='hotel';
+  let SESSION_ID=null;
+
+  const TRANSP={
+    A_low:"💡 價格會依不同時段與需求變化而調整。",
+    B_mid:"📊 目前該日期需求增加、剩餘房數減少,價格因此上調。若更改為非尖峰日,價格可能較低。",
+    C_high:"🔍 本平台採動態定價：依『剩餘房數、近期瀏覽量、同區域平均價格』即時調整。目前此時段：剩餘 3→2 間；近 2 小時瀏覽量 +34%；同區域均價 3,500 元（本房現價 3,727）。"
+  };
+
+  /* ====== DB 寫入封裝 ====== */
+  async function startSession(){
+    const { data, error } = await supabase.from('sessions').insert([{
+      assigned_group, scenario, device: navigator.platform, locale: navigator.language, user_agent: navigator.userAgent
+    }]).select('session_id').single();
+    if(error){ q('#status').textContent='建立連線失敗:'+error.message; return null; }
+    SESSION_ID=data.session_id;
+    q('#status').textContent='已開始,分組:'+assigned_group;
+    return SESSION_ID;
+  }
+  async function logEvent(step,name,props={},price=null,inventory=null){
+    if(!SESSION_ID) return;
+    await supabase.from('events').insert([{ session_id: SESSION_ID, step, name, price_shown: price, inventory_shown: inventory, props }]);
+  }
   async function logSurvey(step,qid,ans=null,txt=null){
     if(!SESSION_ID) return;
     await supabase.from('surveys').insert([{ session_id: SESSION_ID, step, qid, answer_numeric: ans, answer_text: txt }]);
   }
 
-  /* T0 */
-  q('#t0_next').addEventListener('click', async ()=>{
-    const gender = q('#t0_gender').value;
-    const age = q('#t0_age').value;
-    if(!gender || !age){ alert('請選擇性別和年齡'); return; }
-    hide('T0'); 
-    show('T1');
+  /* ====== 匯出 CSV（加上 UTF-8 BOM 避免亂碼）====== */
+  function toCSV(rows){
+    if(!rows || !rows.length) return "";
+    const cols = Array.from(new Set(rows.flatMap(r=>Object.keys(r))));
+    const esc = (v) => {
+      if (v===null||v===undefined) return "";
+      const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+      return '"' + s.replace(/"/g,'""') + '"';
+    };
+    const header = cols.map(esc).join(",");
+    const body = rows.map(r => cols.map(c => esc(r[c])).join(",")).join("\n");
+    return header + "\n" + body;
+  }
+  function downloadCSV(filename, content){
+    // 加上 UTF-8 BOM 讓 Excel 正確識別中文
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + content], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+  }
+  async function fetchAll(table){
+    const pageSize = 1000;
+    let from = 0, to = pageSize-1, all = [];
+    while(true){
+      const { data, error } = await supabase.from(table).select("*").range(from, to);
+      if(error){ throw new Error(table + " 讀取失敗:" + error.message); }
+      if(!data || data.length===0) break;
+      all = all.concat(data);
+      if(data.length < pageSize) break;
+      from += pageSize; to += pageSize;
+    }
+    return all;
+  }
+  async function exportAll(){
+    const tables = ["sessions","demographics","events","surveys","orders"];
+    let successCount = 0;
+    for (const t of tables){
+      try{ 
+        const rows = await fetchAll(t); 
+        downloadCSV(t + ".csv", toCSV(rows)); 
+        successCount++;
+      }
+      catch(e){ 
+        alert("匯出 " + t + " 失敗:" + e.message); 
+      }
+    }
+    if(successCount === 5) {
+      alert("✅ 成功匯出 5 個表格！\n\n已下載：\n• sessions.csv\n• demographics.csv\n• events.csv\n• surveys.csv\n• orders.csv");
+    }
+  }
+  
+  // 綁定兩個匯出按鈕（頂部和T0頁面）
+  q("#btn_export").addEventListener("click", exportAll);
+  
+  // T0 頁面的管理員按鈕稍後綁定（因為它一開始是隱藏的）
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector("#btn_export_admin");
+    if(btn) btn.addEventListener("click", exportAll);
   });
 
-  /* T1 → T2 */
+  /* ====== 管理員密碼驗證 ====== */
+  window.checkAdminPassword = function() {
+    const password = q('#admin-password').value;
+    // 管理員密碼
+    const ADMIN_PASSWORD = 'admin2025';
+    
+    if(password === ADMIN_PASSWORD) {
+      // 顯示頂部匯出按鈕
+      q('#btn_export').classList.remove('hidden');
+      // 顯示 T0 頁面的管理員面板
+      const adminPanel = q('#admin-panel');
+      if(adminPanel) adminPanel.classList.remove('hidden');
+      // 隱藏登入框
+      q('#admin-login').classList.add('hidden');
+      alert('✅ 管理員權限已啟用！\n\n您現在可以：\n• 在頁面頂部看到「匯出資料」按鈕\n• 在 T0 頁面看到綠色管理員面板\n• 一鍵下載全部 5 個表格');
+    } else {
+      alert('❌ 密碼錯誤！正確密碼是：admin2025');
+      q('#admin-password').value = '';
+    }
+  }
+
+  // 連續點擊標題 3 次顯示管理員登入框
+  let clickCount = 0;
+  let clickTimer = null;
+  document.querySelector('h1').addEventListener('click', () => {
+    clickCount++;
+    if(clickCount === 1) {
+      clickTimer = setTimeout(() => { clickCount = 0; }, 2000);
+    }
+    if(clickCount === 3) {
+      clearTimeout(clickTimer);
+      clickCount = 0;
+      q('#admin-login').classList.toggle('hidden');
+    }
+  });
+
+  /* ====== T0 送出 ====== */
+  q('#t0_next').addEventListener('click', async ()=>{
+    const gender = q('#t0_gender').value;
+    const age_band = q('#t0_age').value;
+    let occupationSel = q('#t0_job_select').value;
+    const occupationOther = q('#t0_job_other').value.trim();
+    if (occupationSel === "other") occupationSel = occupationOther || "其他";
+    const income_band = q('#t0_income').value;
+    const education = q('#t0_edu').value;
+
+    if(!gender || !age_band){ alert('請至少填寫「性別」與「年齡區間」。'); return; }
+    try{
+      const { error } = await supabase.from('demographics').insert([{ session_id: SESSION_ID, gender, age_band, occupation: occupationSel, income_band, education }]);
+      if(error) throw error;
+      await logEvent('T0','demographics_filled',{gender,age_band,income_band,education});
+      hide('T0'); 
+      insertHotelInfo('hotel-info-t1');
+      q('#price_t1').textContent = EXPERIMENT_CONFIG.prices.T1.toLocaleString();
+      q('#hotel-info-t1 #current-price').textContent = EXPERIMENT_CONFIG.prices.T1.toLocaleString();
+      show('T1');
+    }catch(e){ alert('送出失敗:'+e.message); }
+  });
+
+  /* ====== T1 → T2 ====== */
   q('#t1_next').addEventListener('click', async ()=>{
-    const desire=getRadio('t1_intent_desire'); 
-    const action=getRadio('t1_intent_action');
-    const attention=getRadio('attention_check');
-    if(desire==null||action==null||attention==null){ alert('請完成全部題目喔'); return; }
-    await logSurvey('T1','t1_intent_desire',desire,null);
-    await logSurvey('T1','t1_intent_action',action,null);
-    await logSurvey('T1','attention_check',attention,null);
+  const desire=getRadio('t1_intent_desire'); 
+  const action=getRadio('t1_intent_action');
+  const attention=getRadio('attention_check');
+  if(desire==null||action==null||attention==null){ alert('請完成全部題目喔'); return; }
+  await logSurvey('T1','t1_intent_desire',desire,null);
+  await logSurvey('T1','t1_intent_action',action,null);
+  await logSurvey('T1','attention_check',attention,null);
+    await logEvent('T2','price_change_exposed',{
+      old_price: EXPERIMENT_CONFIG.prices.T1,
+      new_price: EXPERIMENT_CONFIG.prices.T2,
+      change_type:'up',
+      delta_pct: EXPERIMENT_CONFIG.priceChange.percentage
+    }, EXPERIMENT_CONFIG.prices.T2, EXPERIMENT_CONFIG.inventory.T2);
     hide('T1'); 
+    insertHotelInfo('hotel-info-t2');
+    q('#hotel-info-t2 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
+    q('#t2_old_price').textContent = EXPERIMENT_CONFIG.prices.T1.toLocaleString();
+    q('#price_t2').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
+    q('#t2_pct').textContent = (EXPERIMENT_CONFIG.priceChange.percentage * 100).toFixed(0);
     show('T2');
   });
 
-  /* T2 → T3 */
+  /* ====== T2 → T3 ====== */
   q('#t2_next').addEventListener('click', async ()=>{
-    const locus=getRadio('t2_locus'); 
-    const ctrl=getRadio('t2_control'); 
-    const upset=getRadio('t2_upset');
+    const locus=getRadio('t2_locus'); const ctrl=getRadio('t2_control'); const upset=getRadio('t2_upset');
     if(locus==null||ctrl==null||upset==null){ alert('請完成三題喔'); return; }
     await logSurvey('T2','t2_attrib_locus',locus,null);
     await logSurvey('T2','t2_attrib_control',ctrl,null);
     await logSurvey('T2','t2_emotion_upset',upset,null);
+    await logEvent('T3','transparency_shown',{reason_type:'demand_up',detail_level:assigned_group==='C_high'?'high':(assigned_group==='B_mid'?'mid':'low')});
     hide('T2'); 
+    insertHotelInfo('hotel-info-t3');
+    q('#hotel-info-t3 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
+    q('#transparency_block').textContent = TRANSP[assigned_group];
     show('T3');
   });
 
-  /* T3 → T3_check */
-  q('#t3_next').addEventListener('click', async ()=>{
-    const fair=getRadio('t3_fair'); 
-    const intent=getRadio('t3_intent');
-    if(fair==null||intent==null){ alert('請完成兩題喔'); return; }
-    await logSurvey('T3','t3_fairness',fair,null);
-    await logSurvey('T3','t3_intent',intent,null);
-    hide('T3'); 
-    show('T3_check');
-  });
+/* ====== T3 → T3_check ====== */
+q('#t3_next').addEventListener('click', async ()=>{
+  const fair=getRadio('t3_fair'); 
+  const intent=getRadio('t3_intent');
+  if(fair==null||intent==null){ alert('請完成兩題喔'); return; }
+  await logSurvey('T3','t3_fairness',fair,null);
+  await logSurvey('T3','t3_intent',intent,null);
+  hide('T3'); 
+  show('T3_check');
+});
 
-  /* T3_check → T4 */
-  q('#t3_check_next').addEventListener('click', async ()=>{
-    const understand=getRadio('check_understand'); 
-    const clarity=getRadio('check_clarity');
-    if(understand==null||clarity==null){ alert('請完成兩題喔'); return; }
-    await logSurvey('T3','check_understand',understand,null);
-    await logSurvey('T3','check_clarity',clarity,null);
-    hide('T3_check'); 
-    show('T4');
-  });
+/* ====== T3_check (操弄檢核) → T4 ====== */
+q('#t3_check_next').addEventListener('click', async ()=>{
+  const understand=getRadio('check_understand'); 
+  const clarity=getRadio('check_clarity');
+  if(understand==null||clarity==null){ alert('請完成兩題喔'); return; }
+  await logSurvey('T3','check_understand',understand,null);
+  await logSurvey('T3','check_clarity',clarity,null);
+  hide('T3_check'); 
+  insertHotelInfo('hotel-info-t4');
+  q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
+  show('T4');
+});
 
-  /* T4 提交 */
-  async function submitT4(){
-    const fair=getRadio('t4_fair'); 
-    const intent=getRadio('t4_intent');
+/* ====== T4(下單 / 放棄) ====== */
+// 選項卡片點擊效果
+document.addEventListener('click', (e) => {
+  const option = e.target.closest('.slider-option');
+  if(option) {
+    document.querySelectorAll('.slider-option').forEach(opt => {
+      opt.style.borderColor = '#e5e7eb';
+      opt.style.background = '#fff';
+    });
+    option.style.borderColor = '#059669';
+    option.style.background = '#dcfce7';
+    option.querySelector('input').checked = true;
+  }
+});
+
+
+
+
+  function sliderLabel(val){
+    if(val==0) return "剩餘房數";
+    if(val==100) return "透明說明";
+    return "其他飯店價格";
+  }
+  async function submitT4(decision){
+    const fair=getRadio('t4_fair'); const intent=getRadio('t4_intent');
     if(fair==null||intent==null){ alert('請先完成兩題'); return; }
+    const reasonRadio = document.querySelector('input[name="t4_reason"]:checked');
+    const sliderVal = reasonRadio ? Number(reasonRadio.value) : 50;
+    const reasonText = sliderLabel(sliderVal);
+
     await logSurvey('T4','t4_overall_fairness',fair,null);
     await logSurvey('T4','t4_final_intent',intent,null);
+    await logSurvey('T4','t4_reason_slider',sliderVal,reasonText);
+
+    try{
+      await supabase.from('orders').insert([{ 
+        session_id: SESSION_ID, 
+        price_paid: decision==="success" ? EXPERIMENT_CONFIG.prices.T2 : null, 
+        status: decision 
+      }]);
+    }catch(e){}
+    await logEvent('T4', decision==="success" ? 'complete_checkout':'abandon_checkout',{reason:reasonText, slider:sliderVal});
     q('#done').classList.remove('hidden');
   }
+  q('#btn_checkout').addEventListener('click', ()=>submitT4("success"));
+  q('#btn_abandon').addEventListener('click', ()=>submitT4("abandon"));
 
-  q('#btn_checkout').addEventListener('click', submitT4);
-  q('#btn_abandon').addEventListener('click', submitT4);
-
-  /* 啟動 */
+  /* ====== 啟動:建立 session 後顯示 T0 ====== */
   const ok = await startSession();
+  await logEvent('T1','view_item',{
+    item_id:'RM101',
+    competitor_price: EXPERIMENT_CONFIG.competitor.price
+  }, EXPERIMENT_CONFIG.prices.T1, EXPERIMENT_CONFIG.inventory.T1);
   show('T0');
 </script>
 </body>
