@@ -796,31 +796,16 @@
     show('T3');
   });
 
-  /* ====== T3 → T4 ====== */
-  q('#t3_next').addEventListener('click', async ()=>{
-    const fair=getRadio('t3_fair'); const intent=getRadio('t3_intent');
-    if(fair==null||intent==null){ alert('請完成兩題喔'); return; }
-    await logSurvey('T3','t3_fairness',fair,null);
-    await logSurvey('T3','t3_intent',intent,null);
-    hide('T3'); 
-    show('T3_check');
-  });
-
-  /* ====== T4(下單 / 放棄) ====== */
-  // 選項卡片點擊效果
-  document.addEventListener('click', (e) => {
-    const option = e.target.closest('.slider-option');
-    if(option) {
-      document.querySelectorAll('.slider-option').forEach(opt => {
-        opt.style.borderColor = '#e5e7eb';
-        opt.style.background = '#fff';
-      });
-      option.style.borderColor = '#059669';
-      option.style.background = '#dcfce7';
-      option.querySelector('input').checked = true;
-    }
-  });
-
+/* ====== T3 → T3_check ====== */
+q('#t3_next').addEventListener('click', async ()=>{
+  const fair=getRadio('t3_fair'); 
+  const intent=getRadio('t3_intent');
+  if(fair==null||intent==null){ alert('請完成兩題喔'); return; }
+  await logSurvey('T3','t3_fairness',fair,null);
+  await logSurvey('T3','t3_intent',intent,null);
+  hide('T3'); 
+  show('T3_check');
+});
 
 /* ====== T3_check (操弄檢核) → T4 ====== */
 q('#t3_check_next').addEventListener('click', async ()=>{
@@ -830,7 +815,24 @@ q('#t3_check_next').addEventListener('click', async ()=>{
   await logSurvey('T3','check_understand',understand,null);
   await logSurvey('T3','check_clarity',clarity,null);
   hide('T3_check'); 
+  insertHotelInfo('hotel-info-t4');
+  q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
   show('T4');
+});
+
+/* ====== T4(下單 / 放棄) ====== */
+// 選項卡片點擊效果
+document.addEventListener('click', (e) => {
+  const option = e.target.closest('.slider-option');
+  if(option) {
+    document.querySelectorAll('.slider-option').forEach(opt => {
+      opt.style.borderColor = '#e5e7eb';
+      opt.style.background = '#fff';
+    });
+    option.style.borderColor = '#059669';
+    option.style.background = '#dcfce7';
+    option.querySelector('input').checked = true;
+  }
 });
 
 
