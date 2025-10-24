@@ -796,6 +796,7 @@
     show('T3');
   });
 
+
 /* ====== T3 → T3_check ====== */
 q('#t3_next').addEventListener('click', async ()=>{
   const fair=getRadio('t3_fair'); 
@@ -809,12 +810,12 @@ q('#t3_next').addEventListener('click', async ()=>{
 
 /* ====== T3_check (操弄檢核) → T4 ====== */
 q('#t3_check_next').addEventListener('click', async ()=>{
-  const understand=getRadio('check_understand'); 
+  const understand=getRadio('check_understand');
   const clarity=getRadio('check_clarity');
   if(understand==null||clarity==null){ alert('請完成兩題喔'); return; }
-  await logSurvey('T3','check_understand',understand,null);
+  await logSurvey('T3','check_understand',understand,null);  // 保持 T3，表示屬於 T3 階段的檢核
   await logSurvey('T3','check_clarity',clarity,null);
-  hide('T3_check'); 
+  hide('T3_check');
   insertHotelInfo('hotel-info-t4');
   q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
   show('T4');
@@ -834,6 +835,17 @@ document.addEventListener('click', (e) => {
     option.querySelector('input').checked = true;
   }
 });
+```
+
+---
+
+## 🚀 執行步驟
+
+1. **修改檔案** - 在您的 `index.html` 中進行上述替換
+2. **上傳 GitHub** - 提交新版本到您的 repository
+3. **強制刷新** - 使用新參數強制更新：
+```
+   https://tomchiu1224.github.io/dynamic-pricing-survey/?v=2025-1024
 
 
 
