@@ -803,8 +803,6 @@
     await logSurvey('T3','t3_fairness',fair,null);
     await logSurvey('T3','t3_intent',intent,null);
     hide('T3'); 
-    insertHotelInfo('hotel-info-t4');
-    q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
     show('T3_check');
   });
 
