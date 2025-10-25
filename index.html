@@ -511,7 +511,7 @@
     </div>
 
     <div style="margin:20px 0">
-      <div style="margin-bottom:12px"><b>(可選) 哪個資訊最影響你的決定？</b></div>
+      <div style="margin-bottom:12px"><b>(必選) 哪個資訊最影響你的決定？</b></div>
       <div style="display:flex;gap:12px;align-items:stretch;max-width:600px">
         <label class="slider-option" data-value="0">
           <input type="radio" name="t4_reason" value="0">
@@ -883,6 +883,8 @@ document.addEventListener('click', (e) => {
     const fair=getRadio('t4_fair'); const intent=getRadio('t4_intent');
     if(fair==null||intent==null){ alert('請先完成兩題'); return; }
     const reasonRadio = document.querySelector('input[name="t4_reason"]:checked');
+    if(!reasonRadio){ alert('請選擇最影響你的資訊'); return; }  // ← 新增這行
+    
     const sliderVal = reasonRadio ? Number(reasonRadio.value) : 50;
     const reasonText = sliderLabel(sliderVal);
 
