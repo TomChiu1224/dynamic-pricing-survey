@@ -816,18 +816,35 @@
     const education = q('#t0_edu').value;
 
     if(!gender || !age_band){ alert('請至少填寫「性別」與「年齡區間」。'); return; }
+    
+    const btn = q('#t0_next');
+    btn.disabled = true;
+    btn.textContent = '⏳ 送出中...';
+    
     try{
-      const { error } = await supabase.from('demographics').insert([{ 
+      console.log('🔄 開始送出 T0 資料...', {SESSION_ID, gender, age_band});
+      
+      const insertData = { 
         session_id: SESSION_ID, 
         gender, 
         age_band, 
-        occupation: occupationSel, 
-        income_band, 
-        education 
-      }]);
-      if(error) throw error;
-      console.log('✅ T0 資料已保存');
+        occupation: occupationSel || null, 
+        income_band: income_band || null, 
+        education: education || null 
+      };
+      
+      console.log('📤 插入資料:', insertData);
+      
+      const { data, error } = await supabase.from('demographics').insert([insertData]).select();
+      
+      if(error) {
+        console.error('❌ Supabase 錯誤:', error);
+        throw new Error(`${error.code}: ${error.message}`);
+      }
+      
+      console.log('✅ T0 資料已保存:', data);
       await logEvent('T0','demographics_filled',{gender,age_band,income_band,education});
+      
       hide('T0'); 
       insertHotelInfo('hotel-info-t1');
       q('#price_t1').textContent = EXPERIMENT_CONFIG.prices.T1.toLocaleString();
@@ -835,7 +852,9 @@
       show('T1');
     }catch(e){ 
       console.error('❌ T0 送出失敗:', e);
-      alert('送出失敗:'+e.message); 
+      alert('❌ 送出失敗:\n' + e.message + '\n\n請檢查：\n1. 是否選擇了性別和年齡\n2. Supabase 連線是否正常\n3. demographics 表是否有 INSERT 權限'); 
+      btn.disabled = false;
+      btn.textContent = '開始實驗(進入 T1)';
     }
   });
 
