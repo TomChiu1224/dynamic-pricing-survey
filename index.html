@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>模擬訂房(四階段動態重測)+T0基本資料(台灣版)</title>
+  <title>æ¨¡æ“¬è¨‚æˆ¿(å››éšŽæ®µå‹•æ…‹é‡æ¸¬)+T0åŸºæœ¬è³‡æ–™(å°ç£ç‰ˆ)</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans TC",Arial;padding:20px;line-height:1.6;background:#f5f5f5;max-width:1400px;margin:0 auto}
     .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;flex-wrap:wrap;gap:12px}
@@ -21,7 +22,7 @@
     select,input[type="text"]{padding:8px;border:1px solid #e5e7eb;border-radius:8px;min-width:220px}
     .w-full{min-width:320px;width:320px}
 
-    /* 7點量表 */
+    /* 7é»žé‡è¡¨ */
     .likert{display:grid;grid-template-columns:repeat(7,56px);gap:8px;align-items:flex-start;margin:6px 0;}
     .likert .cell{display:flex;flex-direction:column;align-items:center;font-size:13px;min-height:60px}
     .likert input[type="radio"]{margin:0 0 4px 0;transform:scale(1.1);cursor:pointer}
@@ -29,10 +30,10 @@
     .qline{display:flex;align-items:center;gap:8px;margin-top:12px}
     .hint{color:#6b7280;font-size:13px;white-space:nowrap}
 
-    /* 飯店資訊卡片 - 固定顯示在所有階段 */
+    /* é£¯åº—è³‡è¨Šå¡ç‰‡ - å›ºå®šé¡¯ç¤ºåœ¨æ‰€æœ‰éšŽæ®µ */
     .hotel-info-card{background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.1);margin-bottom:20px}
     
-    /* 圖片輪播區 */
+    /* åœ–ç‰‡è¼ªæ’­å€ */
     .carousel-container{position:relative;width:100%;height:500px;overflow:hidden;background:#000}
     .carousel-slides{display:flex;transition:transform 0.4s ease-in-out;height:100%}
     .carousel-slide{min-width:100%;height:100%;display:flex;align-items:center;justify-content:center}
@@ -42,14 +43,14 @@
     .carousel-btn.prev{left:10px}
     .carousel-btn.next{right:10px}
     
-    /* 縮圖導航 */
+    /* ç¸®åœ–å°Žèˆª */
     .thumbs-nav{display:flex;gap:8px;padding:12px;background:#fafafa;overflow-x:auto;justify-content:center}
     .thumb-item{min-width:100px;width:100px;height:70px;cursor:pointer;border:3px solid transparent;border-radius:8px;overflow:hidden;transition:all 0.2s;background:#fff}
     .thumb-item:hover{transform:scale(1.05);box-shadow:0 2px 8px rgba(0,0,0,0.15)}
     .thumb-item.active{border-color:#059669;box-shadow:0 2px 12px rgba(5,150,105,0.3)}
     .thumb-item img{width:100%;height:100%;object-fit:cover}
     
-    /* 飯店詳細資訊 */
+    /* é£¯åº—è©³ç´°è³‡è¨Š */
     .hotel-details{padding:20px}
     .hotel-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;flex-wrap:wrap;gap:12px}
     .hotel-title{font-size:22px;font-weight:800;color:#111827;margin-bottom:4px}
@@ -70,11 +71,11 @@
     .info-row{display:flex;align-items:center;gap:6px;margin:8px 0;color:#374151;font-size:14px}
     .info-row .icon{font-size:16px}
     
-    /* 問題區域 */
+    /* å•é¡Œå€åŸŸ */
     .questions-section{background:#f9fafb;padding:20px;border-radius:12px;border:1px solid #e5e7eb}
     .question-card{background:#fff;padding:16px;border-radius:8px;margin:12px 0;border:1px solid #e5e7eb}
 
-    /* T4 選項卡片樣式 */
+    /* T4 é¸é …å¡ç‰‡æ¨£å¼ */
     .slider-option{flex:1;text-align:center;padding:12px;border:2px solid #e5e7eb;border-radius:8px;cursor:pointer;transition:all 0.2s;background:#fff}
     .slider-option:hover{border-color:#059669;background:#f0fdf4}
     .slider-option input[type="radio"]{display:none}
@@ -90,200 +91,200 @@
 <body>
 
 <div class="topbar">
-  <h1 style="margin:0">模擬訂房(四階段動態重測)</h1>
-  <button class="btn hidden" id="btn_export">📥 匯出資料(CSV)</button>
+  <h1 style="margin:0">æ¨¡æ“¬è¨‚æˆ¿(å››éšŽæ®µå‹•æ…‹é‡æ¸¬)</h1>
+  <button class="btn hidden" id="btn_export">ðŸ“¥ åŒ¯å‡ºè³‡æ–™(CSV)</button>
 </div>
-<p class="muted">請依序完成:<b>T0基本資料 → T1 → T2 → T3 → T4</b>。每一步只有 1—3 題,完成後按下一步。</p>
+<p class="muted">è«‹ä¾åºå®Œæˆ:<b>T0åŸºæœ¬è³‡æ–™ â†’ T1 â†’ T2 â†’ T3 â†’ T4</b>ã€‚æ¯ä¸€æ­¥åªæœ‰ 1â€”3 é¡Œ,å®Œæˆå¾ŒæŒ‰ä¸‹ä¸€æ­¥ã€‚</p>
 
 <hr style="border:none;border-top:1px solid #e5e7eb;margin:16px 0"/>
 
-<!-- 管理員登入區 (隱藏) -->
+<!-- ç®¡ç†å“¡ç™»å…¥å€ (éš±è—) -->
 <div id="admin-login" class="hidden" style="position:fixed;top:10px;right:10px;z-index:1000;background:white;padding:12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.15)">
-  <div style="margin-bottom:8px;font-size:13px;color:#374151;font-weight:600">🔐 管理員登入</div>
-  <input type="password" id="admin-password" placeholder="輸入管理密碼" style="padding:6px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;width:120px">
-  <button onclick="checkAdminPassword()" style="padding:6px 10px;background:#059669;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;margin-left:4px">登入</button>
+  <div style="margin-bottom:8px;font-size:13px;color:#374151;font-weight:600">ðŸ” ç®¡ç†å“¡ç™»å…¥</div>
+  <input type="password" id="admin-password" placeholder="è¼¸å…¥ç®¡ç†å¯†ç¢¼" style="padding:6px;border:1px solid #e5e7eb;border-radius:6px;font-size:12px;width:120px">
+  <button onclick="checkAdminPassword()" style="padding:6px 10px;background:#059669;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;margin-left:4px">ç™»å…¥</button>
 </div>
 
-<div id="status" class="muted">尚未開始</div>
+<div id="status" class="muted">å°šæœªé–‹å§‹</div>
 
-<!-- T0 基本資料 -->
+<!-- T0 åŸºæœ¬è³‡æ–™ -->
 <div id="T0" class="card hidden">
-  <div class="step-title">T0 基本資料 <span class="pill">第零步</span></div>
+  <div class="step-title">T0 åŸºæœ¬è³‡æ–™ <span class="pill">ç¬¬é›¶æ­¥</span></div>
   
-  <!-- 管理員專用：匯出資料按鈕 -->
+  <!-- ç®¡ç†å“¡å°ˆç”¨ï¼šåŒ¯å‡ºè³‡æ–™æŒ‰éˆ• -->
   <div id="admin-panel" class="hidden" style="background:#f0fdf4;border:2px solid #86efac;border-radius:8px;padding:16px;margin-bottom:20px">
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
       <div>
-        <div style="font-weight:700;color:#059669;margin-bottom:4px">🔐 管理員模式已啟用</div>
-        <div style="font-size:13px;color:#166534">可匯出所有受測者資料（sessions, demographics, events, surveys, orders）</div>
+        <div style="font-weight:700;color:#059669;margin-bottom:4px">ðŸ” ç®¡ç†å“¡æ¨¡å¼å·²å•Ÿç”¨</div>
+        <div style="font-size:13px;color:#166534">å¯åŒ¯å‡ºæ‰€æœ‰å—æ¸¬è€…è³‡æ–™ï¼ˆsessions, demographics, events, surveys, ordersï¼‰</div>
       </div>
-      <button class="btn" id="btn_export_admin" style="background:#059669;border-color:#059669">📥 一鍵匯出全部表格</button>
+      <button class="btn" id="btn_export_admin" style="background:#059669;border-color:#059669">ðŸ“¥ ä¸€éµåŒ¯å‡ºå…¨éƒ¨è¡¨æ ¼</button>
     </div>
   </div>
   
-  <p class="muted">以下資料僅做學術研究,去識別化保存。</p>
+  <p class="muted">ä»¥ä¸‹è³‡æ–™åƒ…åšå­¸è¡“ç ”ç©¶,åŽ»è­˜åˆ¥åŒ–ä¿å­˜ã€‚</p>
 
   <div class="row">
     <div>
-      <div>1) 性別</div>
+      <div>1) æ€§åˆ¥</div>
       <select id="t0_gender">
-        <option value="">請選擇</option>
-        <option value="male">男性</option>
-        <option value="female">女性</option>
-        <option value="nonbinary">非二元性別</option>
-        <option value="prefer_not">不願透露</option>
+        <option value="">è«‹é¸æ“‡</option>
+        <option value="male">ç”·æ€§</option>
+        <option value="female">å¥³æ€§</option>
+        <option value="nonbinary">éžäºŒå…ƒæ€§åˆ¥</option>
+        <option value="prefer_not">ä¸é¡˜é€éœ²</option>
       </select>
     </div>
 
     <div>
-      <div>2) 年齡區間</div>
+      <div>2) å¹´é½¡å€é–“</div>
       <select id="t0_age">
-        <option value="">請選擇</option>
-        <option value="<18">18 歲以下</option>
-        <option value="18-24">18—24 歲</option>
-        <option value="25-34">25—34 歲</option>
-        <option value="35-44">35—44 歲</option>
-        <option value="45-54">45—54 歲</option>
-        <option value="55-64">55—64 歲</option>
-        <option value="65+">65 歲以上</option>
-        <option value="prefer_not">不願透露</option>
+        <option value="">è«‹é¸æ“‡</option>
+        <option value="<18">18 æ­²ä»¥ä¸‹</option>
+        <option value="18-24">18â€”24 æ­²</option>
+        <option value="25-34">25â€”34 æ­²</option>
+        <option value="35-44">35â€”44 æ­²</option>
+        <option value="45-54">45â€”54 æ­²</option>
+        <option value="55-64">55â€”64 æ­²</option>
+        <option value="65+">65 æ­²ä»¥ä¸Š</option>
+        <option value="prefer_not">ä¸é¡˜é€éœ²</option>
       </select>
     </div>
 
     <div>
-      <div>3) 職業(台灣常見類別)</div>
+      <div>3) è·æ¥­(å°ç£å¸¸è¦‹é¡žåˆ¥)</div>
       <select id="t0_job_select" class="w-full">
-        <option value="">請選擇</option>
-        <option>學生</option><option>軍公教</option><option>教育/研究</option><option>醫療/護理</option>
-        <option>資訊科技</option><option>金融/保險</option><option>製造業/工業</option><option>營建/土木/不動產</option>
-        <option>批發零售/門市/銷售</option><option>行銷/專案/企劃</option><option>餐飲/旅宿/觀光</option>
-        <option>運輸/倉儲/物流</option><option>服務業(百貨、客服等)</option><option>文創/設計/媒體</option>
-        <option>農林漁牧</option><option>自由業/接案</option><option>家庭主婦/主夫</option><option>退休</option>
-        <option>待業/求職中</option><option value="other">其他(請填寫)</option><option value="prefer_not">不願透露</option>
+        <option value="">è«‹é¸æ“‡</option>
+        <option>å­¸ç”Ÿ</option><option>è»å…¬æ•™</option><option>æ•™è‚²/ç ”ç©¶</option><option>é†«ç™‚/è­·ç†</option>
+        <option>è³‡è¨Šç§‘æŠ€</option><option>é‡‘èž/ä¿éšª</option><option>è£½é€ æ¥­/å·¥æ¥­</option><option>ç‡Ÿå»º/åœŸæœ¨/ä¸å‹•ç”¢</option>
+        <option>æ‰¹ç™¼é›¶å”®/é–€å¸‚/éŠ·å”®</option><option>è¡ŒéŠ·/å°ˆæ¡ˆ/ä¼åŠƒ</option><option>é¤é£²/æ—…å®¿/è§€å…‰</option>
+        <option>é‹è¼¸/å€‰å„²/ç‰©æµ</option><option>æœå‹™æ¥­(ç™¾è²¨ã€å®¢æœç­‰)</option><option>æ–‡å‰µ/è¨­è¨ˆ/åª’é«”</option>
+        <option>è¾²æž—æ¼ç‰§</option><option>è‡ªç”±æ¥­/æŽ¥æ¡ˆ</option><option>å®¶åº­ä¸»å©¦/ä¸»å¤«</option><option>é€€ä¼‘</option>
+        <option>å¾…æ¥­/æ±‚è·ä¸­</option><option value="other">å…¶ä»–(è«‹å¡«å¯«)</option><option value="prefer_not">ä¸é¡˜é€éœ²</option>
       </select>
       <div id="t0_job_other_wrap" class="hidden" style="margin-top:6px">
-        <input type="text" id="t0_job_other" class="w-full" placeholder="請輸入職業或行業">
+        <input type="text" id="t0_job_other" class="w-full" placeholder="è«‹è¼¸å…¥è·æ¥­æˆ–è¡Œæ¥­">
       </div>
     </div>
 
     <div>
-      <div>4) 年收入區間</div>
+      <div>4) å¹´æ”¶å…¥å€é–“</div>
       <select id="t0_income">
-        <option value="">請選擇</option>
-        <option value="<50萬">低於 50 萬</option>
-        <option value="50—100萬">50—100 萬</option>
-        <option value="100—200萬">100—200 萬</option>
-        <option value="200萬+">200 萬以上</option>
-        <option value="prefer_not">不願透露</option>
+        <option value="">è«‹é¸æ“‡</option>
+        <option value="<50è¬">ä½Žæ–¼ 50 è¬</option>
+        <option value="50â€”100è¬">50â€”100 è¬</option>
+        <option value="100â€”200è¬">100â€”200 è¬</option>
+        <option value="200è¬+">200 è¬ä»¥ä¸Š</option>
+        <option value="prefer_not">ä¸é¡˜é€éœ²</option>
       </select>
     </div>
 
     <div>
-      <div>5) 教育程度</div>
+      <div>5) æ•™è‚²ç¨‹åº¦</div>
       <select id="t0_edu">
-        <option value="">請選擇</option>
-        <option value="國中以下">國中以下</option>
-        <option value="高中職">高中/高職</option>
-        <option value="大學/大專">大學/大專</option>
-        <option value="研究所">研究所</option>
-        <option value="博士">博士</option>
-        <option value="prefer_not">不願透露</option>
+        <option value="">è«‹é¸æ“‡</option>
+        <option value="åœ‹ä¸­ä»¥ä¸‹">åœ‹ä¸­ä»¥ä¸‹</option>
+        <option value="é«˜ä¸­è·">é«˜ä¸­/é«˜è·</option>
+        <option value="å¤§å­¸/å¤§å°ˆ">å¤§å­¸/å¤§å°ˆ</option>
+        <option value="ç ”ç©¶æ‰€">ç ”ç©¶æ‰€</option>
+        <option value="åšå£«">åšå£«</option>
+        <option value="prefer_not">ä¸é¡˜é€éœ²</option>
       </select>
     </div>
   </div>
 
   <div style="margin-top:12px">
-    <button class="btn" id="t0_next">開始實驗(進入 T1)</button>
+    <button class="btn" id="t0_next">é–‹å§‹å¯¦é©—(é€²å…¥ T1)</button>
   </div>
 </div>
 
-<!-- 飯店資訊卡片組件模板 (會在 T1-T4 重複使用) -->
+<!-- é£¯åº—è³‡è¨Šå¡ç‰‡çµ„ä»¶æ¨¡æ¿ (æœƒåœ¨ T1-T4 é‡è¤‡ä½¿ç”¨) -->
 <template id="hotel-info-template">
   <div class="hotel-info-card">
-    <!-- 圖片輪播 -->
+    <!-- åœ–ç‰‡è¼ªæ’­ -->
     <div class="carousel-container">
-      <button class="carousel-btn prev">‹</button>
-      <button class="carousel-btn next">›</button>
+      <button class="carousel-btn prev">â€¹</button>
+      <button class="carousel-btn next">â€º</button>
       <div class="carousel-slides">
-        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=19jD0gcMNJutsnZ-wzM_Jt1s4D-GFhkHF&sz=w1200" alt="長榮桂冠酒店外觀"></div>
-        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1Rnj8oHYsDz0nZY-bSwp8-bL8WeE7NqgB&sz=w1200" alt="高級雙人房"></div>
-        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1vcSCGIxPwO1FujP-Y9x-ZGPbaIQooCg7&sz=w1200" alt="客房內部"></div>
-        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1tPhdEHQRt8Iuuki9SAI2NfPXlhIjasXh&sz=w1200" alt="豪華房型"></div>
-        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1tA6oq4Fp9xnS6lsKY_jvUYC0AFkzW02D&sz=w1200" alt="浴室設施"></div>
-        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1DHtMAGjasDx8BB40gynGm9_D3c0czju5&sz=w1200" alt="房間設備"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=19jD0gcMNJutsnZ-wzM_Jt1s4D-GFhkHF&sz=w1200" alt="é•·æ¦®æ¡‚å† é…’åº—å¤–è§€"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1Rnj8oHYsDz0nZY-bSwp8-bL8WeE7NqgB&sz=w1200" alt="é«˜ç´šé›™äººæˆ¿"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1vcSCGIxPwO1FujP-Y9x-ZGPbaIQooCg7&sz=w1200" alt="å®¢æˆ¿å…§éƒ¨"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1tPhdEHQRt8Iuuki9SAI2NfPXlhIjasXh&sz=w1200" alt="è±ªè¯æˆ¿åž‹"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1tA6oq4Fp9xnS6lsKY_jvUYC0AFkzW02D&sz=w1200" alt="æµ´å®¤è¨­æ–½"></div>
+        <div class="carousel-slide"><img src="https://drive.google.com/thumbnail?id=1DHtMAGjasDx8BB40gynGm9_D3c0czju5&sz=w1200" alt="æˆ¿é–“è¨­å‚™"></div>
       </div>
     </div>
     
-    <!-- 縮圖導航 -->
+    <!-- ç¸®åœ–å°Žèˆª -->
     <div class="thumbs-nav">
-      <div class="thumb-item active" data-index="0"><img src="https://drive.google.com/thumbnail?id=19jD0gcMNJutsnZ-wzM_Jt1s4D-GFhkHF&sz=w200" alt="外觀"></div>
-      <div class="thumb-item" data-index="1"><img src="https://drive.google.com/thumbnail?id=1Rnj8oHYsDz0nZY-bSwp8-bL8WeE7NqgB&sz=w200" alt="雙人房"></div>
-      <div class="thumb-item" data-index="2"><img src="https://drive.google.com/thumbnail?id=1vcSCGIxPwO1FujP-Y9x-ZGPbaIQooCg7&sz=w200" alt="客房"></div>
-      <div class="thumb-item" data-index="3"><img src="https://drive.google.com/thumbnail?id=1tPhdEHQRt8Iuuki9SAI2NfPXlhIjasXh&sz=w200" alt="豪華房"></div>
-      <div class="thumb-item" data-index="4"><img src="https://drive.google.com/thumbnail?id=1tA6oq4Fp9xnS6lsKY_jvUYC0AFkzW02D&sz=w200" alt="浴室"></div>
-      <div class="thumb-item" data-index="5"><img src="https://drive.google.com/thumbnail?id=1DHtMAGjasDx8BB40gynGm9_D3c0czju5&sz=w200" alt="設備"></div>
+      <div class="thumb-item active" data-index="0"><img src="https://drive.google.com/thumbnail?id=19jD0gcMNJutsnZ-wzM_Jt1s4D-GFhkHF&sz=w200" alt="å¤–è§€"></div>
+      <div class="thumb-item" data-index="1"><img src="https://drive.google.com/thumbnail?id=1Rnj8oHYsDz0nZY-bSwp8-bL8WeE7NqgB&sz=w200" alt="é›™äººæˆ¿"></div>
+      <div class="thumb-item" data-index="2"><img src="https://drive.google.com/thumbnail?id=1vcSCGIxPwO1FujP-Y9x-ZGPbaIQooCg7&sz=w200" alt="å®¢æˆ¿"></div>
+      <div class="thumb-item" data-index="3"><img src="https://drive.google.com/thumbnail?id=1tPhdEHQRt8Iuuki9SAI2NfPXlhIjasXh&sz=w200" alt="è±ªè¯æˆ¿"></div>
+      <div class="thumb-item" data-index="4"><img src="https://drive.google.com/thumbnail?id=1tA6oq4Fp9xnS6lsKY_jvUYC0AFkzW02D&sz=w200" alt="æµ´å®¤"></div>
+      <div class="thumb-item" data-index="5"><img src="https://drive.google.com/thumbnail?id=1DHtMAGjasDx8BB40gynGm9_D3c0czju5&sz=w200" alt="è¨­å‚™"></div>
     </div>
     
-    <!-- 飯店詳細資訊 -->
+    <!-- é£¯åº—è©³ç´°è³‡è¨Š -->
     <div class="hotel-details">
       <div class="hotel-header">
         <div>
-          <div class="hotel-title">長榮桂冠酒店 - 台中 Evergreen Laurel Hotel Taichung</div>
-          <div class="hotel-subtitle">高級雙人房 (Superior Double Bed) ｜30平方公尺/323平方英尺｜1張雙人床</div>
+          <div class="hotel-title">é•·æ¦®æ¡‚å† é…’åº— - å°ä¸­ Evergreen Laurel Hotel Taichung</div>
+          <div class="hotel-subtitle">é«˜ç´šé›™äººæˆ¿ (Superior Double Bed) ï½œ30å¹³æ–¹å…¬å°º/323å¹³æ–¹è‹±å°ºï½œ1å¼µé›™äººåºŠ</div>
         </div>
         <div class="price-section">
-          <div class="price-label">平日(週一到週四)售價</div>
+          <div class="price-label">å¹³æ—¥(é€±ä¸€åˆ°é€±å››)å”®åƒ¹</div>
           <div class="price-big">NT$ <span id="current-price">3,241</span></div>
         </div>
       </div>
       
       <div class="hotel-rating">
-        <span class="stars">★★★★★</span>
-        <span class="rating-text">8.9 很讚 (17,233 則評論)</span>
+        <span class="stars">â˜…â˜…â˜…â˜…â˜…</span>
+        <span class="rating-text">8.9 å¾ˆè®š (17,233 å‰‡è©•è«–)</span>
       </div>
       
       <div class="badges">
-        <span class="badge">✓ 附早餐</span>
-        <span class="badge">✓ 2025年10月20日 星期一前可免費取消</span>
-        <span class="badge">✓ 可延至2025年10月18日 星期六扣款</span>
-        <span class="badge">✓ 停車</span>
-        <span class="badge">✓ 免費 Wi-Fi</span>
-        <span class="badge">✓ 健身中心</span>
+        <span class="badge">âœ“ é™„æ—©é¤</span>
+        <span class="badge">âœ“ 2025å¹´10æœˆ20æ—¥ æ˜ŸæœŸä¸€å‰å¯å…è²»å–æ¶ˆ</span>
+        <span class="badge">âœ“ å¯å»¶è‡³2025å¹´10æœˆ18æ—¥ æ˜ŸæœŸå…­æ‰£æ¬¾</span>
+        <span class="badge">âœ“ åœè»Š</span>
+        <span class="badge">âœ“ å…è²» Wi-Fi</span>
+        <span class="badge">âœ“ å¥èº«ä¸­å¿ƒ</span>
       </div>
       
       <div class="info-row">
-        <span class="icon">📍</span>
-        <span>台灣大道二段666號, 西屯區, 台中市, 台灣, 407 - <a href="https://maps.app.goo.gl/NsShf1o18wPhJ2cu5" target="_blank" style="color:#059669;text-decoration:underline">查看地圖與周邊設施</a></span>
+        <span class="icon">ðŸ“</span>
+        <span>å°ç£å¤§é“äºŒæ®µ666è™Ÿ, è¥¿å±¯å€, å°ä¸­å¸‚, å°ç£, 407 - <a href="https://maps.app.goo.gl/NsShf1o18wPhJ2cu5" target="_blank" style="color:#059669;text-decoration:underline">æŸ¥çœ‹åœ°åœ–èˆ‡å‘¨é‚Šè¨­æ–½</a></span>
       </div>
       
       <div class="info-row">
-        <span class="icon">🕐</span>
-        <span>入住 15:00 起 ｜ 退房 12:00 前</span>
+        <span class="icon">ðŸ•</span>
+        <span>å…¥ä½ 15:00 èµ· ï½œ é€€æˆ¿ 12:00 å‰</span>
       </div>
       
       <div class="info-row">
-        <span class="icon">🏨</span>
-        <span>客房面積：30平方公尺 ｜ 1張雙人床 ｜ 浴缸 ｜ 遮光窗簾 ｜ 免費盥洗用品 ｜ Mini Bar ｜ 吹風機 ｜ 浴缸 ｜ 浴袍</span>
+        <span class="icon">ðŸ¨</span>
+        <span>å®¢æˆ¿é¢ç©ï¼š30å¹³æ–¹å…¬å°º ï½œ 1å¼µé›™äººåºŠ ï½œ æµ´ç¼¸ ï½œ é®å…‰çª—ç°¾ ï½œ å…è²»ç›¥æ´—ç”¨å“ ï½œ Mini Bar ï½œ å¹é¢¨æ©Ÿ ï½œ æµ´ç¼¸ ï½œ æµ´è¢</span>
       </div>
       
       <div class="info-row">
-        <span class="icon">✨</span>
-        <span><b>飯店設施：</b>免費Wi-Fi、景觀泳池、免費停車、Spa、酒吧、24小時櫃台服務、健身中心、餐廳</span>
+        <span class="icon">âœ¨</span>
+        <span><b>é£¯åº—è¨­æ–½ï¼š</b>å…è²»Wi-Fiã€æ™¯è§€æ³³æ± ã€å…è²»åœè»Šã€Spaã€é…’å§ã€24å°æ™‚æ«ƒå°æœå‹™ã€å¥èº«ä¸­å¿ƒã€é¤å»³</span>
       </div>
       
       <div class="info-row">
-        <span class="icon">🍽️</span>
-        <span><b>餐飲服務：</b>24小時送餐服務、咖啡廳、送餐服務、美髮沙龍、健身房、Spa</span>
+        <span class="icon">ðŸ½ï¸</span>
+        <span><b>é¤é£²æœå‹™ï¼š</b>24å°æ™‚é€é¤æœå‹™ã€å’–å•¡å»³ã€é€é¤æœå‹™ã€ç¾Žé«®æ²™é¾ã€å¥èº«æˆ¿ã€Spa</span>
       </div>
       
       <div class="info-row">
-        <span class="icon">🛎️</span>
-        <span><b>房間設施：</b>恆溫水壺、吹風機、浴缸、專用衛浴、淋浴設備、隔音設施、室內拖鞋、遮光窗簾、盥洗用品、電視、免費有線上網、電話、衛星頻道/有線電視、冰箱、Mini Bar、免費即溶咖啡、冰箱、泳衣/泳裝設備、地毯、音響、衣櫃、熨燙設備</span>
+        <span class="icon">ðŸ›Žï¸</span>
+        <span><b>æˆ¿é–“è¨­æ–½ï¼š</b>æ†æº«æ°´å£ºã€å¹é¢¨æ©Ÿã€æµ´ç¼¸ã€å°ˆç”¨è¡›æµ´ã€æ·‹æµ´è¨­å‚™ã€éš”éŸ³è¨­æ–½ã€å®¤å…§æ‹–éž‹ã€é®å…‰çª—ç°¾ã€ç›¥æ´—ç”¨å“ã€é›»è¦–ã€å…è²»æœ‰ç·šä¸Šç¶²ã€é›»è©±ã€è¡›æ˜Ÿé »é“/æœ‰ç·šé›»è¦–ã€å†°ç®±ã€Mini Barã€å…è²»å³æº¶å’–å•¡ã€å†°ç®±ã€æ³³è¡£/æ³³è£è¨­å‚™ã€åœ°æ¯¯ã€éŸ³éŸ¿ã€è¡£æ«ƒã€ç†¨ç‡™è¨­å‚™</span>
       </div>
       
       <div style="margin-top:12px;padding:12px;background:#f0fdf4;border:1px solid #86efac;border-radius:8px">
-        <div style="color:#059669;font-weight:600;margin-bottom:4px">💳 全台專屬</div>
-        <div style="font-size:13px;color:#166534">• 附早餐｜免費Wi-Fi｜健身中心｜停車</div>
+        <div style="color:#059669;font-weight:600;margin-bottom:4px">ðŸ’³ å…¨å°å°ˆå±¬</div>
+        <div style="font-size:13px;color:#166534">â€¢ é™„æ—©é¤ï½œå…è²»Wi-Fiï½œå¥èº«ä¸­å¿ƒï½œåœè»Š</div>
       </div>
     </div>
   </div>
@@ -291,115 +292,100 @@
 
 <!-- T1 -->
 <div id="T1" class="card hidden">
-  <div class="step-title">T1 初見價格 <span class="pill">第一步</span></div>
+  <div class="step-title">T1 åˆè¦‹åƒ¹æ ¼ <span class="pill">ç¬¬ä¸€æ­¥</span></div>
   
   <div id="hotel-info-t1"></div>
   
   <div class="questions-section">
-    <p style="margin-top:0"><b>【高級雙人房】</b> 今日價格：<b id="price_t1">3,241</b> 元</p>
+    <p style="margin-top:0"><b>ã€é«˜ç´šé›™äººæˆ¿ã€‘</b> ä»Šæ—¥åƒ¹æ ¼ï¼š<b id="price_t1">3,241</b> å…ƒ</p>
 
     <div class="question-card">
-  <div class="qline"><b>1) 你想要購買的程度：</b></div>
-  <div class="likert">
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不想</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="2"><span>2</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="3"><span>3</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="4"><span>4</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="5"><span>5</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="6"><span>6</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_desire" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常想買</span></label>
-  </div>
-</div>
+      <div class="qline"><b>1) ä½ è¦ºå¾—é€™å€‹åƒ¹æ ¼ï¼š</b></div>
+      <div class="likert">
+        <label class="cell"><input type="radio" name="t1_price" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">éžå¸¸ä¾¿å®œ</span></label>
+        <label class="cell"><input type="radio" name="t1_price" value="2"><span>2</span></label>
+        <label class="cell"><input type="radio" name="t1_price" value="3"><span>3</span></label>
+        <label class="cell"><input type="radio" name="t1_price" value="4"><span>4</span></label>
+        <label class="cell"><input type="radio" name="t1_price" value="5"><span>5</span></label>
+        <label class="cell"><input type="radio" name="t1_price" value="6"><span>6</span></label>
+        <label class="cell"><input type="radio" name="t1_price" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">éžå¸¸æ˜‚è²´</span></label>
+      </div>
+    </div>
 
-<div class="question-card">
-  <div class="qline"><b>2) 假設現在就要決定，你會購買這間房間嗎？</b></div>
-  <div class="likert">
-    <label class="cell"><input type="radio" name="t1_intent_action" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">絕對不會</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_action" value="2"><span>2</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_action" value="3"><span>3</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_action" value="4"><span>4</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_action" value="5"><span>5</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_action" value="6"><span>6</span></label>
-    <label class="cell"><input type="radio" name="t1_intent_action" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">一定會</span></label>
-  </div>
-</div>
+    <div class="question-card">
+      <div class="qline"><b>2) ä½ ç¾åœ¨æƒ³è¦è³¼è²·çš„ç¨‹åº¦ï¼š</b></div>
+      <div class="likert">
+        <label class="cell"><input type="radio" name="t1_intent" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">å®Œå…¨ä¸æƒ³</span></label>
+        <label class="cell"><input type="radio" name="t1_intent" value="2"><span>2</span></label>
+        <label class="cell"><input type="radio" name="t1_intent" value="3"><span>3</span></label>
+        <label class="cell"><input type="radio" name="t1_intent" value="4"><span>4</span></label>
+        <label class="cell"><input type="radio" name="t1_intent" value="5"><span>5</span></label>
+        <label class="cell"><input type="radio" name="t1_intent" value="6"><span>6</span></label>
+        <label class="cell"><input type="radio" name="t1_intent" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">éžå¸¸æƒ³è²·</span></label>
+      </div>
+    </div>
 
-
-<div class="question-card" style="background:#fff9e6;border:1px solid #fcd34d">
-  <div class="qline"><b>⚠️ 注意力檢核：請選擇「3」</b></div>
-  <div class="muted" style="margin-bottom:8px">請仔細選擇正確的數字</div>
-  <div class="likert">
-    <label class="cell"><input type="radio" name="attention_check" value="1"><span>1</span></label>
-    <label class="cell"><input type="radio" name="attention_check" value="2"><span>2</span></label>
-    <label class="cell"><input type="radio" name="attention_check" value="3"><span>3</span><span style="font-size:11px;margin-top:2px;color:#dc2626;font-weight:600">✓</span></label>
-    <label class="cell"><input type="radio" name="attention_check" value="4"><span>4</span></label>
-    <label class="cell"><input type="radio" name="attention_check" value="5"><span>5</span></label>
-    <label class="cell"><input type="radio" name="attention_check" value="6"><span>6</span></label>
-    <label class="cell"><input type="radio" name="attention_check" value="7"><span>7</span></label>
-  </div>
-</div>
-
-    <button class="btn" id="t1_next" style="margin-top:16px">下一步 →</button>
+    <button class="btn" id="t1_next" style="margin-top:16px">ä¸‹ä¸€æ­¥ â†’</button>
   </div>
 </div>
 
 <!-- T2 -->
 <div id="T2" class="card hidden">
-  <div class="step-title">T2 價格變動 <span class="pill">第二步</span></div>
+  <div class="step-title">T2 åƒ¹æ ¼è®Šå‹• <span class="pill">ç¬¬äºŒæ­¥</span></div>
   
   <div id="hotel-info-t2"></div>
   
   <div class="questions-section">
     <div style="padding:12px;background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;margin-bottom:16px">
-      <p style="margin:0;color:#dc2626;font-weight:600">⚠️ 過三天後您再次進入這頁面,價格更新：從 <b id="t2_old_price">3,241</b> → <b id="price_t2">3,727</b> 元 (↑ <span id="t2_pct">15</span>%)</p>
+      <p style="margin:0;color:#dc2626;font-weight:600">âš ï¸ éŽä¸‰å¤©å¾Œæ‚¨å†æ¬¡é€²å…¥é€™é é¢,åƒ¹æ ¼æ›´æ–°ï¼šå¾ž <b id="t2_old_price">3,241</b> â†’ <b id="price_t2">3,727</b> å…ƒ (â†‘ <span id="t2_pct">15</span>%)</p>
     </div>
 
     <div class="question-card">
-      <div class="qline"><b>1) 你覺得這次漲價的主因：</b></div>
+      <div class="qline"><b>1) ä½ è¦ºå¾—é€™æ¬¡æ¼²åƒ¹çš„ä¸»å› ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t2_locus" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">外在因素</span></label>
+        <label class="cell"><input type="radio" name="t2_locus" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">å¤–åœ¨å› ç´ </span></label>
         <label class="cell"><input type="radio" name="t2_locus" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t2_locus" value="3"><span>3</span></label>
         <label class="cell"><input type="radio" name="t2_locus" value="4"><span>4</span></label>
         <label class="cell"><input type="radio" name="t2_locus" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t2_locus" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t2_locus" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">內在因素</span></label>
+        <label class="cell"><input type="radio" name="t2_locus" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">å…§åœ¨å› ç´ </span></label>
       </div>
     </div>
 
     <div class="question-card">
-      <div class="qline"><b>2) 你覺得這次漲價是：</b></div>
+      <div class="qline"><b>2) ä½ è¦ºå¾—é€™æ¬¡æ¼²åƒ¹æ˜¯ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t2_control" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">不可控</span></label>
+        <label class="cell"><input type="radio" name="t2_control" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">ä¸å¯æŽ§</span></label>
         <label class="cell"><input type="radio" name="t2_control" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t2_control" value="3"><span>3</span></label>
         <label class="cell"><input type="radio" name="t2_control" value="4"><span>4</span></label>
         <label class="cell"><input type="radio" name="t2_control" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t2_control" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t2_control" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">可控制</span></label>
+        <label class="cell"><input type="radio" name="t2_control" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">å¯æŽ§åˆ¶</span></label>
       </div>
     </div>
 
     <div class="question-card">
-      <div class="qline"><b>3) 你感到不高興的程度：</b></div>
+      <div class="qline"><b>3) ä½ æ„Ÿåˆ°ä¸é«˜èˆˆçš„ç¨‹åº¦ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t2_upset" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不會</span></label>
+        <label class="cell"><input type="radio" name="t2_upset" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">å®Œå…¨ä¸æœƒ</span></label>
         <label class="cell"><input type="radio" name="t2_upset" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t2_upset" value="3"><span>3</span></label>
         <label class="cell"><input type="radio" name="t2_upset" value="4"><span>4</span></label>
         <label class="cell"><input type="radio" name="t2_upset" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t2_upset" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t2_upset" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常不爽</span></label>
+        <label class="cell"><input type="radio" name="t2_upset" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">éžå¸¸ä¸çˆ½</span></label>
       </div>
     </div>
 
-    <button class="btn" id="t2_next">下一步(看說明) →</button>
+    <button class="btn" id="t2_next">ä¸‹ä¸€æ­¥(çœ‹èªªæ˜Ž) â†’</button>
   </div>
 </div>
 
 <!-- T3 -->
 <div id="T3" class="card hidden">
-  <div class="step-title">T3 價格透明說明 <span class="pill">第三步</span></div>
+  <div class="step-title">T3 åƒ¹æ ¼é€æ˜Žèªªæ˜Ž <span class="pill">ç¬¬ä¸‰æ­¥</span></div>
   
   <div id="hotel-info-t3"></div>
   
@@ -407,170 +393,128 @@
     <div id="transparency_block" style="padding:16px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;margin-bottom:16px;color:#1e40af"></div>
 
     <div class="question-card">
-      <div class="qline"><b>1) 現在你覺得價格是公平的：</b></div>
+      <div class="qline"><b>1) ç¾åœ¨ä½ è¦ºå¾—åƒ¹æ ¼æ˜¯å…¬å¹³çš„ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t3_fair" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">非常不同意</span></label>
+        <label class="cell"><input type="radio" name="t3_fair" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">éžå¸¸ä¸åŒæ„</span></label>
         <label class="cell"><input type="radio" name="t3_fair" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t3_fair" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t3_fair" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">中立</span></label>
+        <label class="cell"><input type="radio" name="t3_fair" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">ä¸­ç«‹</span></label>
         <label class="cell"><input type="radio" name="t3_fair" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t3_fair" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t3_fair" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常同意</span></label>
+        <label class="cell"><input type="radio" name="t3_fair" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">éžå¸¸åŒæ„</span></label>
       </div>
     </div>
 
     <div class="question-card">
-      <div class="qline"><b>2) 你的購買意願是否提升：</b></div>
+      <div class="qline"><b>2) ä½ çš„è³¼è²·æ„é¡˜æ˜¯å¦æå‡ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t3_intent" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">明顯下降</span></label>
+        <label class="cell"><input type="radio" name="t3_intent" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">æ˜Žé¡¯ä¸‹é™</span></label>
         <label class="cell"><input type="radio" name="t3_intent" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t3_intent" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t3_intent" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">無變化</span></label>
+        <label class="cell"><input type="radio" name="t3_intent" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">ç„¡è®ŠåŒ–</span></label>
         <label class="cell"><input type="radio" name="t3_intent" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t3_intent" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t3_intent" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">明顯提升</span></label>
+        <label class="cell"><input type="radio" name="t3_intent" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">æ˜Žé¡¯æå‡</span></label>
       </div>
     </div>
 
-    <button class="btn" id="t3_next">進入最後一步 →</button>
+    <button class="btn" id="t3_next">é€²å…¥æœ€å¾Œä¸€æ­¥ â†’</button>
   </div>
 </div>
-
-<!-- T3_check 操弄檢核 -->
-<div id="T3_check" class="card hidden">
-  <div class="step-title">確認您的理解 <span class="pill">檢核</span></div>
-  
-  <p class="muted">在進行最後決定前，我們想確認您對剛才說明的理解。</p>
-  
-  <div class="questions-section">
-    <div class="question-card">
-      <div class="qline"><b>1) 我理解平台為何調價：</b></div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="check_understand" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不理解</span></label>
-        <label class="cell"><input type="radio" name="check_understand" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="check_understand" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="check_understand" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="check_understand" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="check_understand" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="check_understand" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">完全理解</span></label>
-      </div>
-    </div>
-
-    <div class="question-card">
-      <div class="qline"><b>2) 我覺得這份說明清楚易懂：</b></div>
-      <div class="likert">
-        <label class="cell"><input type="radio" name="check_clarity" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">完全不清楚</span></label>
-        <label class="cell"><input type="radio" name="check_clarity" value="2"><span>2</span></label>
-        <label class="cell"><input type="radio" name="check_clarity" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="check_clarity" value="4"><span>4</span></label>
-        <label class="cell"><input type="radio" name="check_clarity" value="5"><span>5</span></label>
-        <label class="cell"><input type="radio" name="check_clarity" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="check_clarity" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常清楚</span></label>
-      </div>
-    </div>
-
-    <button class="btn" id="t3_check_next" style="margin-top:16px">進入最後決定 →</button>
-  </div>
-</div>
-
-
-
-
 
 <!-- T4 -->
 <div id="T4" class="card hidden">
-  <div class="step-title">T4 最終決策 <span class="pill">第四步</span></div>
+  <div class="step-title">T4 æœ€çµ‚æ±ºç­– <span class="pill">ç¬¬å››æ­¥</span></div>
   
   <div id="hotel-info-t4"></div>
   
   <div class="questions-section">
     <div class="question-card">
-      <div class="qline"><b>1) 整體來說,你覺得這個價格是公平的：</b></div>
+      <div class="qline"><b>1) æ•´é«”ä¾†èªª,ä½ è¦ºå¾—é€™å€‹åƒ¹æ ¼æ˜¯å…¬å¹³çš„ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t4_fair" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">非常同意</span></label>
+        <label class="cell"><input type="radio" name="t4_fair" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">éžå¸¸åŒæ„</span></label>
         <label class="cell"><input type="radio" name="t4_fair" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t4_fair" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t4_fair" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">中立</span></label>
+        <label class="cell"><input type="radio" name="t4_fair" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">ä¸­ç«‹</span></label>
         <label class="cell"><input type="radio" name="t4_fair" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t4_fair" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t4_fair" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常不同意</span></label>
+        <label class="cell"><input type="radio" name="t4_fair" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">éžå¸¸ä¸åŒæ„</span></label>
       </div>
     </div>
 
     <div class="question-card">
-      <div class="qline"><b>2) 你現在的購買意願：</b></div>
+      <div class="qline"><b>2) ä½ ç¾åœ¨çš„è³¼è²·æ„é¡˜ï¼š</b></div>
       <div class="likert">
-        <label class="cell"><input type="radio" name="t4_intent" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">非常願意</span></label>
+        <label class="cell"><input type="radio" name="t4_intent" value="1"><span>1</span><span style="font-size:11px;margin-top:2px">éžå¸¸é¡˜æ„</span></label>
         <label class="cell"><input type="radio" name="t4_intent" value="2"><span>2</span></label>
         <label class="cell"><input type="radio" name="t4_intent" value="3"><span>3</span></label>
-        <label class="cell"><input type="radio" name="t4_intent" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">中立</span></label>
+        <label class="cell"><input type="radio" name="t4_intent" value="4"><span>4</span><span style="font-size:11px;margin-top:2px">ä¸­ç«‹</span></label>
         <label class="cell"><input type="radio" name="t4_intent" value="5"><span>5</span></label>
         <label class="cell"><input type="radio" name="t4_intent" value="6"><span>6</span></label>
-        <label class="cell"><input type="radio" name="t4_intent" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">非常不願意</span></label>
+        <label class="cell"><input type="radio" name="t4_intent" value="7"><span>7</span><span style="font-size:11px;margin-top:2px">éžå¸¸ä¸é¡˜æ„</span></label>
       </div>
     </div>
 
     <div style="margin:20px 0">
-      <div style="margin-bottom:12px"><b>(必選) 哪個資訊最影響你的決定？</b></div>
+      <div style="margin-bottom:12px"><b>(å¯é¸) å“ªå€‹è³‡è¨Šæœ€å½±éŸ¿ä½ çš„æ±ºå®šï¼Ÿ</b></div>
       <div style="display:flex;gap:12px;align-items:stretch;max-width:600px">
         <label class="slider-option" data-value="0">
           <input type="radio" name="t4_reason" value="0">
-          <div style="font-size:14px;font-weight:500">剩餘房數</div>
+          <div style="font-size:14px;font-weight:500">å‰©é¤˜æˆ¿æ•¸</div>
         </label>
         <label class="slider-option" data-value="50">
           <input type="radio" name="t4_reason" value="50">
-          <div style="font-size:14px;font-weight:500">其他飯店價格</div>
+          <div style="font-size:14px;font-weight:500">å…¶ä»–é£¯åº—åƒ¹æ ¼</div>
         </label>
         <label class="slider-option" data-value="100">
           <input type="radio" name="t4_reason" value="100">
-          <div style="font-size:14px;font-weight:500">透明說明</div>
+          <div style="font-size:14px;font-weight:500">é€æ˜Žèªªæ˜Ž</div>
         </label>
       </div>
     </div>
 
     <div class="row" style="margin-top:20px">
-      <button class="btn" id="btn_checkout">✓ 我會購買(模擬下單)</button>
-      <button class="btn secondary" id="btn_abandon">✗ 我不買(離開)</button>
+      <button class="btn" id="btn_checkout">âœ“ æˆ‘æœƒè³¼è²·(æ¨¡æ“¬ä¸‹å–®)</button>
+      <button class="btn secondary" id="btn_abandon">âœ— æˆ‘ä¸è²·(é›¢é–‹)</button>
     </div>
-    <div id="done" class="ok hidden" style="margin-top:12px;font-size:16px">✓ 已完成,感謝！你可以關閉頁面。</div>
+    <div id="done" class="ok hidden" style="margin-top:12px;font-size:16px">âœ“ å·²å®Œæˆ,æ„Ÿè¬ï¼ä½ å¯ä»¥é—œé–‰é é¢ã€‚</div>
   </div>
 </div>
 
 <script type="module">
-  /* ====== 實驗參數集中管理 ====== */
+  /* ====== å¯¦é©—åƒæ•¸é›†ä¸­ç®¡ç† ====== */
   const EXPERIMENT_CONFIG = {
     prices: {
-      T1: 3241,           // 初始價格
-      T2: 3727,           // 漲價後價格
-      T2_original: 3241   // T2顯示的原價參考
+      T1: 3241,           // åˆå§‹åƒ¹æ ¼
+      T2: 3727,           // æ¼²åƒ¹å¾Œåƒ¹æ ¼
+      T2_original: 3241   // T2é¡¯ç¤ºçš„åŽŸåƒ¹åƒè€ƒ
     },
     inventory: {
-      T1: 3,              // 初始剩餘房數
-      T2: 2               // T2剩餘房數
+      T1: 3,              // åˆå§‹å‰©é¤˜æˆ¿æ•¸
+      T2: 2               // T2å‰©é¤˜æˆ¿æ•¸
     },
     priceChange: {
-      absolute: 486,      // 絕對漲幅 (3727-3241)
-      percentage: 0.15    // 百分比 15%
+      absolute: 486,      // çµ•å°æ¼²å¹… (3727-3241)
+      percentage: 0.15    // ç™¾åˆ†æ¯” 15%
     },
     competitor: {
-      price: 3500         // 競品價格（用於T3說明）
+      price: 3500         // ç«¶å“åƒ¹æ ¼ï¼ˆç”¨æ–¼T3èªªæ˜Žï¼‰
     }
   };
 
-  /* ====== Supabase 連線 ====== */
+  /* ====== Supabase é€£ç·š ====== */
   const SUPABASE_URL = "https://hcsbwmeseeerugeotsow.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhjc2J3bWVzZWVlcnVnZW90c293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjA4MjQsImV4cCI6MjA3NTgzNjgyNH0.3CP5szKNc5wMq9L4xO70wxlyMxT3YpK_5gg7i3TAx38";
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  let supabase = null;
 
-  /* ====== DOM 小工具 ====== */
+  /* ====== DOM å°å·¥å…· ====== */
   const q=(s)=>document.querySelector(s);
   const qa=(s)=>document.querySelectorAll(s);
   const show=(id)=>q('#'+id).classList.remove('hidden');
   const hide=(id)=>q('#'+id).classList.add('hidden');
   const getRadio=(name)=>{const el=document.querySelector(`input[name="${name}"]:checked`);return el?Number(el.value):null;};
 
-  /* ====== 圖片輪播功能 ====== */
+  /* ====== åœ–ç‰‡è¼ªæ’­åŠŸèƒ½ ====== */
   let currentSlide = 0;
   const totalSlides = 6;
 
@@ -605,7 +549,7 @@
     });
   }
 
-  // 克隆飯店資訊模板到各階段
+  // å…‹éš†é£¯åº—è³‡è¨Šæ¨¡æ¿åˆ°å„éšŽæ®µ
   function insertHotelInfo(targetId) {
     const template = q('#hotel-info-template');
     const target = q('#' + targetId);
@@ -614,7 +558,7 @@
     initCarousel(target.querySelector('.hotel-info-card'));
   }
 
-  // T0 其他職業欄顯示
+  // T0 å…¶ä»–è·æ¥­æ¬„é¡¯ç¤º
   document.addEventListener("change",(e)=>{
     if(e.target && e.target.id==="t0_job_select"){
       if(e.target.value==="other") q("#t0_job_other_wrap").classList.remove("hidden");
@@ -622,38 +566,53 @@
     }
   });
 
-  /* ====== 實驗設定 ====== */
+  /* ====== å¯¦é©—è¨­å®š ====== */
   const GROUPS=['A_low','B_mid','C_high'];
   const assigned_group=GROUPS[Math.floor(Math.random()*GROUPS.length)];
   const scenario='hotel';
   let SESSION_ID=null;
 
   const TRANSP={
-    A_low:"💡 價格會依不同時段與需求變化而調整。",
-    B_mid:"📊 目前該日期需求增加、剩餘房數減少,價格因此上調。若更改為非尖峰日,價格可能較低。",
-    C_high:"🔍 本平台採動態定價：依『剩餘房數、近期瀏覽量、同區域平均價格』即時調整。目前此時段：剩餘 3→2 間；近 2 小時瀏覽量 +34%；同區域均價 3,500 元（本房現價 3,727）。"
+    A_low:"ðŸ’¡ åƒ¹æ ¼æœƒä¾ä¸åŒæ™‚æ®µèˆ‡éœ€æ±‚è®ŠåŒ–è€Œèª¿æ•´ã€‚",
+    B_mid:"ðŸ“Š ç›®å‰è©²æ—¥æœŸéœ€æ±‚å¢žåŠ ã€å‰©é¤˜æˆ¿æ•¸æ¸›å°‘,åƒ¹æ ¼å› æ­¤ä¸Šèª¿ã€‚è‹¥æ›´æ”¹ç‚ºéžå°–å³°æ—¥,åƒ¹æ ¼å¯èƒ½è¼ƒä½Žã€‚",
+    C_high:"ðŸ” æœ¬å¹³å°æŽ¡å‹•æ…‹å®šåƒ¹ï¼šä¾ã€Žå‰©é¤˜æˆ¿æ•¸ã€è¿‘æœŸç€è¦½é‡ã€åŒå€åŸŸå¹³å‡åƒ¹æ ¼ã€å³æ™‚èª¿æ•´ã€‚ç›®å‰æ­¤æ™‚æ®µï¼šå‰©é¤˜ 3â†’2 é–“ï¼›è¿‘ 2 å°æ™‚ç€è¦½é‡ +34%ï¼›åŒå€åŸŸå‡åƒ¹ 3,500 å…ƒï¼ˆæœ¬æˆ¿ç¾åƒ¹ 3,727ï¼‰ã€‚"
   };
 
-  /* ====== DB 寫入封裝 ====== */
+  /* ====== DB å¯«å…¥å°è£ ====== */
   async function startSession(){
+    // ç­‰å¾… supabase åˆè¨­å®Œæ¯ˆ
+    let attempts = 0;
+    while(!supabase && attempts < 50) {
+      await new Promise(r => setTimeout(r, 100));
+      if(window.supabase && window.supabase.createClient && !supabase) {
+        supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      }
+      attempts++;
+    }
+    
+    if(!supabase) {
+      q('#status').textContent='âŒ Supabase åˆè¨­å¤±æ•—';
+      return null;
+    }
+    
     const { data, error } = await supabase.from('sessions').insert([{
       assigned_group, scenario, device: navigator.platform, locale: navigator.language, user_agent: navigator.userAgent
     }]).select('session_id').single();
-    if(error){ q('#status').textContent='建立連線失敗:'+error.message; return null; }
+    if(error){ q('#status').textContent='å»ºç«‹é€£ç·šå¤±æ•—:'+error.message; return null; }
     SESSION_ID=data.session_id;
-    q('#status').textContent='已開始,分組:'+assigned_group;
+    q('#status').textContent='âœ… å·²é–‹å§‹,åˆ†çµ„:'+assigned_group;
     return SESSION_ID;
   }
   async function logEvent(step,name,props={},price=null,inventory=null){
-    if(!SESSION_ID) return;
+    if(!SESSION_ID || !supabase) return;
     await supabase.from('events').insert([{ session_id: SESSION_ID, step, name, price_shown: price, inventory_shown: inventory, props }]);
   }
   async function logSurvey(step,qid,ans=null,txt=null){
-    if(!SESSION_ID) return;
+    if(!SESSION_ID || !supabase) return;
     await supabase.from('surveys').insert([{ session_id: SESSION_ID, step, qid, answer_numeric: ans, answer_text: txt }]);
   }
 
-  /* ====== 匯出 CSV（加上 UTF-8 BOM 避免亂碼）====== */
+  /* ====== åŒ¯å‡º CSVï¼ˆåŠ ä¸Š UTF-8 BOM é¿å…äº‚ç¢¼ï¼‰====== */
   function toCSV(rows){
     if(!rows || !rows.length) return "";
     const cols = Array.from(new Set(rows.flatMap(r=>Object.keys(r))));
@@ -667,7 +626,7 @@
     return header + "\n" + body;
   }
   function downloadCSV(filename, content){
-    // 加上 UTF-8 BOM 讓 Excel 正確識別中文
+    // åŠ ä¸Š UTF-8 BOM è®“ Excel æ­£ç¢ºè­˜åˆ¥ä¸­æ–‡
     const BOM = "\uFEFF";
     const blob = new Blob([BOM + content], {type:"text/csv;charset=utf-8;"});
     const url = URL.createObjectURL(blob);
@@ -680,7 +639,7 @@
     let from = 0, to = pageSize-1, all = [];
     while(true){
       const { data, error } = await supabase.from(table).select("*").range(from, to);
-      if(error){ throw new Error(table + " 讀取失敗:" + error.message); }
+      if(error){ throw new Error(table + " è®€å–å¤±æ•—:" + error.message); }
       if(!data || data.length===0) break;
       all = all.concat(data);
       if(data.length < pageSize) break;
@@ -698,45 +657,45 @@
         successCount++;
       }
       catch(e){ 
-        alert("匯出 " + t + " 失敗:" + e.message); 
+        alert("åŒ¯å‡º " + t + " å¤±æ•—:" + e.message); 
       }
     }
     if(successCount === 5) {
-      alert("✅ 成功匯出 5 個表格！\n\n已下載：\n• sessions.csv\n• demographics.csv\n• events.csv\n• surveys.csv\n• orders.csv");
+      alert("âœ… æˆåŠŸåŒ¯å‡º 5 å€‹è¡¨æ ¼ï¼\n\nå·²ä¸‹è¼‰ï¼š\nâ€¢ sessions.csv\nâ€¢ demographics.csv\nâ€¢ events.csv\nâ€¢ surveys.csv\nâ€¢ orders.csv");
     }
   }
   
-  // 綁定兩個匯出按鈕（頂部和T0頁面）
+  // ç¶å®šå…©å€‹åŒ¯å‡ºæŒ‰éˆ•ï¼ˆé ‚éƒ¨å’ŒT0é é¢ï¼‰
   q("#btn_export").addEventListener("click", exportAll);
   
-  // T0 頁面的管理員按鈕稍後綁定（因為它一開始是隱藏的）
+  // T0 é é¢çš„ç®¡ç†å“¡æŒ‰éˆ•ç¨å¾Œç¶å®šï¼ˆå› ç‚ºå®ƒä¸€é–‹å§‹æ˜¯éš±è—çš„ï¼‰
   document.addEventListener('DOMContentLoaded', () => {
     const btn = document.querySelector("#btn_export_admin");
     if(btn) btn.addEventListener("click", exportAll);
   });
 
-  /* ====== 管理員密碼驗證 ====== */
+  /* ====== ç®¡ç†å“¡å¯†ç¢¼é©—è­‰ ====== */
   window.checkAdminPassword = function() {
     const password = q('#admin-password').value;
-    // 管理員密碼
+    // ç®¡ç†å“¡å¯†ç¢¼
     const ADMIN_PASSWORD = 'admin2025';
     
     if(password === ADMIN_PASSWORD) {
-      // 顯示頂部匯出按鈕
+      // é¡¯ç¤ºé ‚éƒ¨åŒ¯å‡ºæŒ‰éˆ•
       q('#btn_export').classList.remove('hidden');
-      // 顯示 T0 頁面的管理員面板
+      // é¡¯ç¤º T0 é é¢çš„ç®¡ç†å“¡é¢æ¿
       const adminPanel = q('#admin-panel');
       if(adminPanel) adminPanel.classList.remove('hidden');
-      // 隱藏登入框
+      // éš±è—ç™»å…¥æ¡†
       q('#admin-login').classList.add('hidden');
-      alert('✅ 管理員權限已啟用！\n\n您現在可以：\n• 在頁面頂部看到「匯出資料」按鈕\n• 在 T0 頁面看到綠色管理員面板\n• 一鍵下載全部 5 個表格');
+      alert('âœ… ç®¡ç†å“¡æ¬Šé™å·²å•Ÿç”¨ï¼\n\næ‚¨ç¾åœ¨å¯ä»¥ï¼š\nâ€¢ åœ¨é é¢é ‚éƒ¨çœ‹åˆ°ã€ŒåŒ¯å‡ºè³‡æ–™ã€æŒ‰éˆ•\nâ€¢ åœ¨ T0 é é¢çœ‹åˆ°ç¶ è‰²ç®¡ç†å“¡é¢æ¿\nâ€¢ ä¸€éµä¸‹è¼‰å…¨éƒ¨ 5 å€‹è¡¨æ ¼');
     } else {
-      alert('❌ 密碼錯誤！正確密碼是：admin2025');
+      alert('âŒ å¯†ç¢¼éŒ¯èª¤ï¼æ­£ç¢ºå¯†ç¢¼æ˜¯ï¼šadmin2025');
       q('#admin-password').value = '';
     }
   }
 
-  // 連續點擊標題 3 次顯示管理員登入框
+  // é€£çºŒé»žæ“Šæ¨™é¡Œ 3 æ¬¡é¡¯ç¤ºç®¡ç†å“¡ç™»å…¥æ¡†
   let clickCount = 0;
   let clickTimer = null;
   document.querySelector('h1').addEventListener('click', () => {
@@ -751,17 +710,17 @@
     }
   });
 
-  /* ====== T0 送出 ====== */
+  /* ====== T0 é€å‡º ====== */
   q('#t0_next').addEventListener('click', async ()=>{
     const gender = q('#t0_gender').value;
     const age_band = q('#t0_age').value;
     let occupationSel = q('#t0_job_select').value;
     const occupationOther = q('#t0_job_other').value.trim();
-    if (occupationSel === "other") occupationSel = occupationOther || "其他";
+    if (occupationSel === "other") occupationSel = occupationOther || "å…¶ä»–";
     const income_band = q('#t0_income').value;
     const education = q('#t0_edu').value;
 
-    if(!gender || !age_band){ alert('請至少填寫「性別」與「年齡區間」。'); return; }
+    if(!gender || !age_band){ alert('è«‹è‡³å°‘å¡«å¯«ã€Œæ€§åˆ¥ã€èˆ‡ã€Œå¹´é½¡å€é–“ã€ã€‚'); return; }
     try{
       const { error } = await supabase.from('demographics').insert([{ session_id: SESSION_ID, gender, age_band, occupation: occupationSel, income_band, education }]);
       if(error) throw error;
@@ -771,18 +730,15 @@
       q('#price_t1').textContent = EXPERIMENT_CONFIG.prices.T1.toLocaleString();
       q('#hotel-info-t1 #current-price').textContent = EXPERIMENT_CONFIG.prices.T1.toLocaleString();
       show('T1');
-    }catch(e){ alert('送出失敗:'+e.message); }
+    }catch(e){ alert('é€å‡ºå¤±æ•—:'+e.message); }
   });
 
-  /* ====== T1 → T2 ====== */
+  /* ====== T1 â†’ T2 ====== */
   q('#t1_next').addEventListener('click', async ()=>{
-  const desire=getRadio('t1_intent_desire'); 
-  const action=getRadio('t1_intent_action');
-  const attention=getRadio('attention_check');
-  if(desire==null||action==null||attention==null){ alert('請完成全部題目喔'); return; }
-  await logSurvey('T1','t1_intent_desire',desire,null);
-  await logSurvey('T1','t1_intent_action',action,null);
-  await logSurvey('T1','attention_check',attention,null);
+    const p=getRadio('t1_price'); const i=getRadio('t1_intent');
+    if(p==null||i==null){ alert('è«‹å®Œæˆå…©é¡Œå–”'); return; }
+    await logSurvey('T1','t1_price_perceived',p,null);
+    await logSurvey('T1','t1_intent',i,null);
     await logEvent('T2','price_change_exposed',{
       old_price: EXPERIMENT_CONFIG.prices.T1,
       new_price: EXPERIMENT_CONFIG.prices.T2,
@@ -798,10 +754,10 @@
     show('T2');
   });
 
-  /* ====== T2 → T3 ====== */
+  /* ====== T2 â†’ T3 ====== */
   q('#t2_next').addEventListener('click', async ()=>{
     const locus=getRadio('t2_locus'); const ctrl=getRadio('t2_control'); const upset=getRadio('t2_upset');
-    if(locus==null||ctrl==null||upset==null){ alert('請完成三題喔'); return; }
+    if(locus==null||ctrl==null||upset==null){ alert('è«‹å®Œæˆä¸‰é¡Œå–”'); return; }
     await logSurvey('T2','t2_attrib_locus',locus,null);
     await logSurvey('T2','t2_attrib_control',ctrl,null);
     await logSurvey('T2','t2_emotion_upset',upset,null);
@@ -813,78 +769,42 @@
     show('T3');
   });
 
-/* ====== T3 → T3_check ====== */
-q('#t3_next').addEventListener('click', async ()=>{
-  const fair=getRadio('t3_fair'); 
-  const intent=getRadio('t3_intent');
-  if(fair==null||intent==null){ alert('請完成兩題喔'); return; }
-  await logSurvey('T3','t3_fairness',fair,null);
-  await logSurvey('T3','t3_intent',intent,null);
-  hide('T3'); 
-  show('T3_check');
-});
-
-/* ====== T3_check (操弄檢核) → T4 ====== */
-q('#t3_check_next').addEventListener('click', async ()=>{
-  const understand=getRadio('check_understand');
-  const clarity=getRadio('check_clarity');
-  if(understand==null||clarity==null){ alert('請完成兩題喔'); return; }
-  
-  const btn = q('#t3_check_next');
-  btn.disabled = true;
-  btn.textContent = '⏳ 處理中...';
-  
-  try {
-    await logSurvey('T3','check_understand',understand,null);
-    await logSurvey('T3','check_clarity',clarity,null);
-    
-    hide('T3_check');
+  /* ====== T3 â†’ T4 ====== */
+  q('#t3_next').addEventListener('click', async ()=>{
+    const fair=getRadio('t3_fair'); const intent=getRadio('t3_intent');
+    if(fair==null||intent==null){ alert('è«‹å®Œæˆå…©é¡Œå–”'); return; }
+    await logSurvey('T3','t3_fairness',fair,null);
+    await logSurvey('T3','t3_intent',intent,null);
+    hide('T3'); 
     insertHotelInfo('hotel-info-t4');
     q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
     show('T4');
-  } catch(e) {
-    console.error('T3_check 錯誤:', e);
-    alert('⚠️ 資料保存可能失敗，但我們會繼續進行。');
-    
-    hide('T3_check');
-    insertHotelInfo('hotel-info-t4');
-    q('#hotel-info-t4 #current-price').textContent = EXPERIMENT_CONFIG.prices.T2.toLocaleString();
-    show('T4');
-  } finally {
-    btn.disabled = false;
-    btn.textContent = '進入最後決定 →';
-  }
-});
+  });
 
-/* ====== T4(下單 / 放棄) ====== */
-// 選項卡片點擊效果
-document.addEventListener('click', (e) => {
-  const option = e.target.closest('.slider-option');
-  if(option) {
-    document.querySelectorAll('.slider-option').forEach(opt => {
-      opt.style.borderColor = '#e5e7eb';
-      opt.style.background = '#fff';
-    });
-    option.style.borderColor = '#059669';
-    option.style.background = '#dcfce7';
-    option.querySelector('input').checked = true;
-  }
-});
-
-
-
+  /* ====== T4(ä¸‹å–® / æ”¾æ£„) ====== */
+  // é¸é …å¡ç‰‡é»žæ“Šæ•ˆæžœ
+  document.addEventListener('click', (e) => {
+    const option = e.target.closest('.slider-option');
+    if(option) {
+      document.querySelectorAll('.slider-option').forEach(opt => {
+        opt.style.borderColor = '#e5e7eb';
+        opt.style.background = '#fff';
+      });
+      option.style.borderColor = '#059669';
+      option.style.background = '#dcfce7';
+      option.querySelector('input').checked = true;
+    }
+  });
 
   function sliderLabel(val){
-    if(val==0) return "剩餘房數";
-    if(val==100) return "透明說明";
-    return "其他飯店價格";
+    if(val==0) return "å‰©é¤˜æˆ¿æ•¸";
+    if(val==100) return "é€æ˜Žèªªæ˜Ž";
+    return "å…¶ä»–é£¯åº—åƒ¹æ ¼";
   }
   async function submitT4(decision){
     const fair=getRadio('t4_fair'); const intent=getRadio('t4_intent');
-    if(fair==null||intent==null){ alert('請先完成兩題'); return; }
+    if(fair==null||intent==null){ alert('è«‹å…ˆå®Œæˆå…©é¡Œ'); return; }
     const reasonRadio = document.querySelector('input[name="t4_reason"]:checked');
-    if(!reasonRadio){ alert('請選擇最影響你的資訊'); return; }  // ← 新增這行
-    
     const sliderVal = reasonRadio ? Number(reasonRadio.value) : 50;
     const reasonText = sliderLabel(sliderVal);
 
@@ -905,7 +825,7 @@ document.addEventListener('click', (e) => {
   q('#btn_checkout').addEventListener('click', ()=>submitT4("success"));
   q('#btn_abandon').addEventListener('click', ()=>submitT4("abandon"));
 
-  /* ====== 啟動:建立 session 後顯示 T0 ====== */
+  /* ====== å•Ÿå‹•:å»ºç«‹ session å¾Œé¡¯ç¤º T0 ====== */
   const ok = await startSession();
   await logEvent('T1','view_item',{
     item_id:'RM101',
