@@ -753,8 +753,6 @@
         const rows = await fetchAll(t); 
         downloadCSV(t + ".csv", toCSV(rows)); 
         successCount++;
-        // 加入300ms延遲避免同時下載太多檔案
-        await new Promise(resolve => setTimeout(resolve, 300));
       }
       catch(e){ 
         alert("匯出 " + t + " 失敗:" + e.message); 
