@@ -748,48 +748,20 @@
   async function exportAll(){
     const tables = ["sessions","demographics","events","surveys","orders"];
     let successCount = 0;
-    
-    // 停用按鈕防止重複點擊
-    const btn = document.querySelector("#btn_export_admin") || document.querySelector("#btn_export");
-    if(btn) {
-      btn.disabled = true;
-      btn.textContent = "⏳ 匯出中...";
-    }
-    
-    for (let i = 0; i < tables.length; i++){
-      const t = tables[i];
+    for (const t of tables){
       try{ 
-        const rows = await fetchAll(t);
-        console.log(`📊 ${t} 取得 ${rows.length} 筆資料`);
+        const rows = await fetchAll(t); 
         downloadCSV(t + ".csv", toCSV(rows)); 
         successCount++;
-        
-        // 更新按鈕顯示進度
-        if(btn) {
-          btn.textContent = `⏳ 匯出中... (${successCount}/${tables.length})`;
-        }
-        
-        // 在每次下載之間加入 800ms 延遲，確保瀏覽器能正確處理每個檔案
-        if(i < tables.length - 1) {
-          await new Promise(resolve => setTimeout(resolve, 800));
-        }
+        // 加入300ms延遲避免同時下載太多檔案
+        await new Promise(resolve => setTimeout(resolve, 300));
       }
       catch(e){ 
-        console.error(`❌ 匯出 ${t} 失敗:`, e);
         alert("匯出 " + t + " 失敗:" + e.message); 
       }
     }
-    
-    // 恢復按鈕
-    if(btn) {
-      btn.disabled = false;
-      btn.textContent = "📥 一鍵匯出全部表格";
-    }
-    
     if(successCount === 5) {
       alert("✅ 成功匯出 5 個表格！");
-    } else if(successCount > 0) {
-      alert(`⚠️ 部分匯出成功 (${successCount}/5 個表格)`);
     }
   }
   
