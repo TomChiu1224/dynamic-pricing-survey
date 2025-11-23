@@ -131,7 +131,7 @@
         <option value="male">男性</option>
         <option value="female">女性</option>
         <option value="nonbinary">非二元性別</option>
-        
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
 
@@ -146,7 +146,7 @@
         <option value="45-54">45—54 歲</option>
         <option value="55-64">55—64 歲</option>
         <option value="65+">65 歲以上</option>
-        
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
 
@@ -159,7 +159,7 @@
         <option>批發零售/門市/銷售</option><option>行銷/專案/企劃</option><option>餐飲/旅宿/觀光</option>
         <option>運輸/倉儲/物流</option><option>服務業(百貨、客服等)</option><option>文創/設計/媒體</option>
         <option>農林漁牧</option><option>自由業/接案</option><option>家庭主婦/主夫</option><option>退休</option>
-        <option>待業/求職中</option><option value="other">其他(請填寫)</option>
+        <option>待業/求職中</option><option value="other">其他(請填寫)</option><option value="prefer_not">不願透露</option>
       </select>
       <div id="t0_job_other_wrap" class="hidden" style="margin-top:6px">
         <input type="text" id="t0_job_other" class="w-full" placeholder="請輸入職業或行業">
@@ -174,7 +174,7 @@
         <option value="50—100萬">50—100 萬</option>
         <option value="100—200萬">100—200 萬</option>
         <option value="200萬+">200 萬以上</option>
-        
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
 
@@ -187,7 +187,7 @@
         <option value="大學/大專">大學/大專</option>
         <option value="研究所">研究所</option>
         <option value="博士">博士</option>
-        
+        <option value="prefer_not">不願透露</option>
       </select>
     </div>
   </div>
@@ -704,100 +704,100 @@
   }
 
   /* ====== 匯出 CSV ====== */
-function toCSV(rows){
-  if(!rows || !rows.length) return "";
-  const cols = Array.from(new Set(rows.flatMap(r=>Object.keys(r))));
-  const esc = (v) => {
-    if (v===null||v===undefined) return "";
-    const s = typeof v === "object" ? JSON.stringify(v) : String(v);
-    return '"' + s.replace(/"/g,'""') + '"';
-  };
-  const header = cols.map(esc).join(",");
-  const body = rows.map(r => cols.map(c => esc(r[c])).join(",")).join("\n");
-  return header + "\n" + body;
-}
-
-function downloadCSV(filename, content){
-  const BOM = "\uFEFF";
-  const blob = new Blob([BOM + content], {type:"text/csv;charset=utf-8;"});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url; a.download = filename; a.click();
-  URL.revokeObjectURL(url);
-}
-
-async function fetchAll(table){
-  const pageSize = 1000;
-  let from = 0, to = pageSize-1, all = [];
-  try {
-    while(true){
-      const { data, error } = await supabase.from(table).select("*").range(from, to);
-      if(error) throw new Error(table + " 讀取失敗:" + error.message);
-      if(!data || data.length===0) break;
-      all = all.concat(data);
-      if(data.length < pageSize) break;
-      from += pageSize; to += pageSize;
-    }
-    return all;
-  } catch(e) {
-    console.error('❌ 匯出失敗:', e);
-    throw e;
+  function toCSV(rows){
+    if(!rows || !rows.length) return "";
+    const cols = Array.from(new Set(rows.flatMap(r=>Object.keys(r))));
+    const esc = (v) => {
+      if (v===null||v===undefined) return "";
+      const s = typeof v === "object" ? JSON.stringify(v) : String(v);
+      return '"' + s.replace(/"/g,'""') + '"';
+    };
+    const header = cols.map(esc).join(",");
+    const body = rows.map(r => cols.map(c => esc(r[c])).join(",")).join("\n");
+    return header + "\n" + body;
   }
-}
 
-async function exportAll(){
-  const tables = ["sessions","demographics","events","surveys","orders"];
-  let successCount = 0;
-  
-  // 停用按鈕防止重複點擊
-  const btn = document.querySelector("#btn_export_admin") || document.querySelector("#btn_export");
-  if(btn) {
-    btn.disabled = true;
-    btn.textContent = "⏳ 匯出中...";
+  function downloadCSV(filename, content){
+    const BOM = "\uFEFF";
+    const blob = new Blob([BOM + content], {type:"text/csv;charset=utf-8;"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
   }
-  
-  for (let i = 0; i < tables.length; i++){
-    const t = tables[i];
-    try{ 
-      const rows = await fetchAll(t);
-      console.log(`📊 ${t} 取得 ${rows.length} 筆資料`);
-      downloadCSV(t + ".csv", toCSV(rows)); 
-      successCount++;
-      
-      // 更新按鈕顯示進度
-      if(btn) {
-        btn.textContent = `⏳ 匯出中... (${successCount}/${tables.length})`;
+
+  async function fetchAll(table){
+    const pageSize = 1000;
+    let from = 0, to = pageSize-1, all = [];
+    try {
+      while(true){
+        const { data, error } = await supabase.from(table).select("*").range(from, to);
+        if(error) throw new Error(table + " 讀取失敗:" + error.message);
+        if(!data || data.length===0) break;
+        all = all.concat(data);
+        if(data.length < pageSize) break;
+        from += pageSize; to += pageSize;
       }
-      
-      // 在每次下載之間加入 800ms 延遲，確保瀏覽器能正確處理每個檔案
-      if(i < tables.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 800));
+      return all;
+    } catch(e) {
+      console.error('❌ 匯出失敗:', e);
+      throw e;
+    }
+  }
+
+  async function exportAll(){
+    const tables = ["sessions","demographics","events","surveys","orders"];
+    let successCount = 0;
+    
+    // 停用按鈕防止重複點擊
+    const btn = document.querySelector("#btn_export_admin") || document.querySelector("#btn_export");
+    if(btn) {
+      btn.disabled = true;
+      btn.textContent = "⏳ 匯出中...";
+    }
+    
+    for (let i = 0; i < tables.length; i++){
+      const t = tables[i];
+      try{ 
+        const rows = await fetchAll(t);
+        console.log(`📊 ${t} 取得 ${rows.length} 筆資料`);
+        downloadCSV(t + ".csv", toCSV(rows)); 
+        successCount++;
+        
+        // 更新按鈕顯示進度
+        if(btn) {
+          btn.textContent = `⏳ 匯出中... (${successCount}/${tables.length})`;
+        }
+        
+        // 在每次下載之間加入 800ms 延遲，確保瀏覽器能正確處理每個檔案
+        if(i < tables.length - 1) {
+          await new Promise(resolve => setTimeout(resolve, 800));
+        }
+      }
+      catch(e){ 
+        console.error(`❌ 匯出 ${t} 失敗:`, e);
+        alert("匯出 " + t + " 失敗:" + e.message); 
       }
     }
-    catch(e){ 
-      console.error(`❌ 匯出 ${t} 失敗:`, e);
-      alert("匯出 " + t + " 失敗:" + e.message); 
+    
+    // 恢復按鈕
+    if(btn) {
+      btn.disabled = false;
+      btn.textContent = "📥 一鍵匯出全部表格";
+    }
+    
+    if(successCount === 5) {
+      alert("✅ 成功匯出 5 個表格！");
+    } else if(successCount > 0) {
+      alert(`⚠️ 部分匯出成功 (${successCount}/5 個表格)`);
     }
   }
   
-  // 恢復按鈕
-  if(btn) {
-    btn.disabled = false;
-    btn.textContent = "📥 一鍵匯出全部表格";
-  }
-  
-  if(successCount === 5) {
-    alert("✅ 成功匯出 5 個表格！");
-  } else if(successCount > 0) {
-    alert(`⚠️ 部分匯出成功 (${successCount}/5 個表格)`);
-  }
-}
-
-q("#btn_export").addEventListener("click", exportAll);
-document.addEventListener('DOMContentLoaded', () => {
-  const btn = document.querySelector("#btn_export_admin");
-  if(btn) btn.addEventListener("click", exportAll);
-});
+  q("#btn_export").addEventListener("click", exportAll);
+  document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.querySelector("#btn_export_admin");
+    if(btn) btn.addEventListener("click", exportAll);
+  });
 
   /* ====== 管理員密碼驗證 ====== */
   window.checkAdminPassword = function() {
