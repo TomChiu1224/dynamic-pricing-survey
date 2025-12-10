@@ -542,13 +542,17 @@
   </div>
 </div>
 
-<script type="module">
-  import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+<!-- 先載入 Supabase 函式庫（官方建議的 CDN 用法） -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<!-- 再寫你自己的程式 -->
+<script>
+
   
   const SUPABASE_URL = "https://hcsbwmeseeerugeotsow.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhjc2J3bWVzZWVlcnVnZW90c293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjA4MjQsImV4cCI6MjA3NTgzNjgyNH0.3CP5szKNc5wMq9L4xO70wxlyMxT3YpK_5gg7i3TAx38";
   
-  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
   /* ====== 實驗設定 ====== */
   const GROUPS=['A_low','B_mid','C_high'];
