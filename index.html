@@ -44,7 +44,7 @@
     
     /* 縮圖導航 */
     .thumbs-nav{display:flex;gap:8px;padding:12px;background:#fafafa;overflow-x:auto;justify-content:center}
-    .thumb-item{min-width:100px;width:100px;height:70px;cursor:pointer;border:3px solid transparent;border-radius:8px;overflow:hidden;transition:all 0.2s;background:#fff}
+    .thumb-item{min-width:100px;width:100px;height:70px;cursor:pointer;border:3px固transparent;border-radius:8px;overflow:hidden;transition:all 0.2s;background:#fff}
     .thumb-item:hover{transform:scale(1.05);box-shadow:0 2px 8px rgba(0,0,0,0.15)}
     .thumb-item.active{border-color:#059669;box-shadow:0 2px 12px rgba(5,150,105,0.3)}
     .thumb-item img{width:100%;height:100%;object-fit:cover}
@@ -542,17 +542,16 @@
   </div>
 </div>
 
-<!-- 先載入 Supabase 函式庫（官方建議的 CDN 用法） -->
+<!-- 載入 Supabase SDK（官方 CDN） -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<!-- 再寫你自己的程式 -->
-<script>
 
-  
+<!-- 你的主程式（不再是 module） -->
+<script>
   const SUPABASE_URL = "https://hcsbwmeseeerugeotsow.supabase.co";
   const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhjc2J3bWVzZWVlcnVnZW90c293Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAyNjA4MjQsImV4cCI6MjA3NTgzNjgyNH0.3CP5szKNc5wMq9L4xO70wxlyMxT3YpK_5gg7i3TAx38";
-  
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+  /* 這裡改回用 window.supabase（其餘邏輯不動） */
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
   /* ====== 實驗設定 ====== */
   const GROUPS=['A_low','B_mid','C_high'];
@@ -991,16 +990,19 @@
   q('#btn_abandon').addEventListener('click', ()=>submitT4("abandon"));
 
   /* ====== 啟動：建立 session 後顯示 T0 ====== */
-  const ok = await startSession();
-  if(ok) {
-    await logEvent('T1','view_item',{
-      item_id:'RM101',
-      competitor_price: EXPERIMENT_CONFIG.competitor.price
-    }, EXPERIMENT_CONFIG.prices.T1, EXPERIMENT_CONFIG.inventory.T1);
-    show('T0');
-  } else {
-    q('#status').textContent = '❌ 無法連接到資料庫，請重新整理頁面';
-  }
+  // 這裡用 IIFE 包起來，避免頂層 await
+  (async () => {
+    const ok = await startSession();
+    if(ok) {
+      await logEvent('T1','view_item',{
+        item_id:'RM101',
+        competitor_price: EXPERIMENT_CONFIG.competitor.price
+      }, EXPERIMENT_CONFIG.prices.T1, EXPERIMENT_CONFIG.inventory.T1);
+      show('T0');
+    } else {
+      q('#status').textContent = '❌ 無法連接到資料庫，請重新整理頁面';
+    }
+  })();
 </script>
 </body>
 </html>
